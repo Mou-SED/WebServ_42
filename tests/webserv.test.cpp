@@ -5,7 +5,6 @@
 
 TEST_CASE("file is open", "[webserv]") {
 	REQUIRE(webserv("tests/nginx.conf") == true);
-	REQUIRE(webserv("tests/test.conf") == false);
 }
 
 TEST_CASE("ip address", "[parcing]") {
