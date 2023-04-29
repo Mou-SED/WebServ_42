@@ -1,30 +1,43 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   check_syntax.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/12 21:45:12 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/29 15:06:26 by aaggoujj         ###   ########.fr       */
+/*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
+/*   Updated: 2023/04/29 18:56:19 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-int main(int ac, char **av)
+void	server_check(std::string const & value)
 {
-	if (ac > 2)
-		return (write(2, "Error: Multi Argument [..]\n", 6), 1);
-	try
-	{
-		if (ac == 1)
-			webserv("conf/webserv.conf");
-		else
-			webserv(av[1]);
-	}
-	catch(const std::exception & e)
-	{
-		std::cerr << e.what() << '\n';
-	}
+	(void)value;
+}
+
+void	listen_check(std::string const & value)
+{
+	(void)value;
+}
+
+void	server_name_check(std::string const & value)
+{
+	(void)value;
+}
+
+void	error_page_check(std::string const & value)
+{
+	(void)value;
+}
+
+void	client_max_body_size_check(std::string const & value)
+{
+	(void)value;
+}
+
+void	autoindex_check(std::string const & value)
+{
+	(void)value;
 }
