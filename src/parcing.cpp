@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/07 20:38:47 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/04/07 22:14:36 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,8 +16,7 @@ bool ipAddress(std::string s)
 {
 	std::string buff("");
 	std::vector<std::string> v;
-	std::stringstream ss;
-	ss << s;
+	std::istringstream ss(s);
 	while (getline(ss, buff, '.'))
 	{
 		if ( strspn(buff.c_str(), "0123456789") == buff.size() and buff != "" )
