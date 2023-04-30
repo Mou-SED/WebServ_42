@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   webserv.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 22:21:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/29 18:55:34 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/04/30 15:14:39 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,12 @@ std::string	check_syntax(std::ifstream &file);
 bool	webserv(const char *av);
 bool	parcing(std::ifstream &file, std::string s);
 bool	ipAddress(std::string s);
+bool	isPort( std::string s );
+std::string	trim( std::string const & str );
 
 /////////////////////////// check_value.cpp ///////////////////////////
 
-void	server_check(std::string const & value);
-void	listen_check(std::string const & value);
+void	listen_check(std::string const & value, const int i);
 void	server_name_check(std::string const & value);
 void	error_page_check(std::string const & value);
 void	client_max_body_size_check(std::string const & value);
