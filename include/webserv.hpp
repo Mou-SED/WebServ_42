@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 22:21:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 15:14:39 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/04/30 18:15:10 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,7 @@ bool	parcing(std::ifstream &file, std::string s);
 bool	ipAddress(std::string s);
 bool	isPort( std::string s );
 std::string	trim( std::string const & str );
+bool 		isDomain( std::string const & s );
 
 /////////////////////////// check_value.cpp ///////////////////////////
 
