@@ -13,10 +13,15 @@ TEST_CASE("ip address", "[parcing]") {
 	REQUIRE(ipAddress("1.a1.13.5") == false);
 }
 
+TEST_CASE("[A] Check synatx part", "[parcing]") {
 
-TEST_CASE("check syntax", "[parcing]") {
-	std::ifstream file("tests/test.conf");
-	REQUIRE(check_syntax(file) == "server 231; server_name aymane; autoindex on; ");
-	REQUIRE_NOTHROW(check_syntax(file));
-	file.close();
+	REQUIRE_THROWS(error_page_check("300 4d00 500;"));
+	REQUIRE_NOTHROW(error_page_check("300 400 500;"));
+	REQUIRE_NOTHROW(error_page_check("300 400 500"));
+	REQUIRE_NOTHROW(client_max_body_size_check("1000;"));
+	REQUIRE_NOTHROW(client_max_body_size_check("1000M;"));
+	REQUIRE_THROWS(client_max_body_size_check("100G;"));
+	REQUIRE_NOTHROW(autoindex_check("on;"));
+	REQUIRE_NOTHROW(autoindex_check("off;"));
+	REQUIRE_THROWS(autoindex_check("On;"));
 }
