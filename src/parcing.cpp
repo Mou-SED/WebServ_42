@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 15:15:43 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/04/30 18:30:01 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,15 +57,26 @@ std::string trim( std::string const & str )
 	return str.substr(first, (last - first + 1));
 }
 
+bool isDomain( std::string const & s )
+{
+	if (s.size() > 255)
+		throw std::runtime_error("Error: syntax error : `" + s + "` : too long");
+	if (s.front() == '.' or s.back() == '.' or s.front() == '-' or s.back() == '-')
+		return false;
+	if ( strspn(s.c_str(), "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-.") == s.size() and s != "" )
+		return true;
+	return false;
+}
+
 void	check_value(std::string const &key, std::string const & value, const int i)
 {
-	if (key == "server" and value != "{" and value.back() != '{')
+	if ( (key == "server" and value != "{") or (key == "location" and value != "{") )
 		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : server block must be followed by `{`");
 	else if (key == "listen")
 		listen_check(value, i);
 	else if (key == "server_name")
 		server_name_check(value);
-	else if (key == "error_page") // TODO : [A] last tree statement
+	else if (key == "error_page")
 		error_page_check(value);
 	else if (key == "client_max_body_size")
 		client_max_body_size_check(value);
@@ -77,7 +88,7 @@ void	check_value(std::string const &key, std::string const & value, const int i)
 		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : missing `client_body_temp_path` value");
 	else if (key == "autoindex")
 		autoindex_check(value);
-	else
+	else if (key != "server" and key != "location")
 		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : unknown `" + key + "`");
 }
 
@@ -102,7 +113,7 @@ std::string	check_syntax(std::ifstream &file)
 		if (lt.find(key) == lt.end())
 			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : unknown `" + key + "`");
 		else
-			check_value(key, value, i);
+			check_value(key, trim(value), i);
 		token += key + value + " ";
 		i++;
 	}
