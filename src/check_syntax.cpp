@@ -3,47 +3,47 @@
 /*                                                        :::      ::::::::   */
 /*   check_syntax.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 18:16:07 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/04/30 20:17:01 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
 
-void	listen_check(std::string const & value, const int i)
+void	listen_check(std::string const & value)
 {
 	std::string tmp;
 
 	if (value.find(':') != std::string::npos)
 	{
 		tmp = value.substr(0, value.find(':'));
-		if (!ipAddress(tmp) and !isDomain(tmp))
-			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid ip address or domain name");
+		if (!Check::ipAddress(tmp) and !Check::isDomain(tmp))
+			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : invalid ip address or domain name");
 		tmp = value.substr(value.find(':') + 1, value.find(';') - value.find(':') - 1);
-		if (!isPort(tmp))
-			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid port number");
+		if (!Check::isPort(tmp))
+			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : invalid port number");
 		int x = atoi(tmp.c_str());
 		if (x < 0 || x > 65535)
-			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid port number");
+			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : invalid port number");
 	}
 	else
 	{
 		tmp = value.substr(0, value.find(';'));
 		if ( value.find('.') != std::string::npos )
 		{
-			if (!ipAddress(tmp))
-				throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid ip address");
+			if (!Check::ipAddress(tmp))
+				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : invalid ip address");
 		}
 		else
 		{
-			if (!isPort(tmp))
-				throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid port number");
+			if (!Check::isPort(tmp))
+				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : invalid port number");
 			int x = atoi(tmp.c_str());
 			if (x < 0 || x > 65535)
-				throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid port number");
+				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : invalid port number");
 		}
 	}
 }

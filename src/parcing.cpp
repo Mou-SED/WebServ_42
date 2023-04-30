@@ -3,16 +3,25 @@
 /*                                                        :::      ::::::::   */
 /*   parcing.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 18:30:01 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/04/30 20:38:05 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "webserv.hpp"
 
-bool ipAddress(std::string s)
+int  Check::num_line;
+std::set<std::string> Check::methods;
+std::string Check::key;
+std::string Check::value;
+std::string type_value[] = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex"};
+std::stack<char> Check::brackets;
+
+
+
+bool Check::ipAddress(std::string s)
 {
 	std::string buff("");
 	std::vector<std::string> v;
@@ -34,7 +43,7 @@ bool ipAddress(std::string s)
 	return true;
 }
 
-bool isPort( std::string s )
+bool Check::isPort( std::string s )
 {
 	if ( strspn(s.c_str(), "0123456789") == s.size() and s != "" )
 	{
@@ -57,7 +66,7 @@ std::string trim( std::string const & str )
 	return str.substr(first, (last - first + 1));
 }
 
-bool isDomain( std::string const & s )
+bool Check::isDomain( std::string const & s )
 {
 	if (s.size() > 255)
 		throw std::runtime_error("Error: syntax error : `" + s + "` : too long");
@@ -68,12 +77,12 @@ bool isDomain( std::string const & s )
 	return false;
 }
 
-void	check_value(std::string const &key, std::string const & value, const int i)
+void	check_value(std::string const &key, std::string const & value)
 {
 	if ( (key == "server" and value != "{") or (key == "location" and value != "{") )
-		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : server block must be followed by `{`");
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : server block must be followed by `{`");
 	else if (key == "listen")
-		listen_check(value, i);
+		listen_check(value);
 	else if (key == "server_name")
 		server_name_check(value);
 	else if (key == "error_page")
@@ -81,15 +90,15 @@ void	check_value(std::string const &key, std::string const & value, const int i)
 	else if (key == "client_max_body_size")
 		client_max_body_size_check(value);
 	else if (key == "root" and value == ";")
-		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : missing `root` value");
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `root` value");
 	else if (key == "index" and value == ";")
-		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : missing `index` value");
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `index` value");
 	else if (key == "client_body_temp_path" and value == ";")
-		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : missing `client_body_temp_path` value");
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `client_body_temp_path` value");
 	else if (key == "autoindex")
 		autoindex_check(value);
 	else if (key != "server" and key != "location")
-		throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : unknown `" + key + "`");
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
 }
 
 std::string	check_syntax(std::ifstream &file)
@@ -97,9 +106,9 @@ std::string	check_syntax(std::ifstream &file)
 	std::string line;
 	std::string key, value;
 	std::string token;
-	std::string arr[] = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex"};
-	std::set<std::string> lt(arr, arr + sizeof(arr) / sizeof(arr[0]));
-	int i = 1;
+
+	for (size_t i = 0; i < sizeof(type_value) / sizeof(type_value[0]); i++)
+		Check::methods.insert(type_value[i]);
 	while (getline(file, line))
 	{
 		std::stringstream ss;
@@ -108,14 +117,14 @@ std::string	check_syntax(std::ifstream &file)
 		ss >> value;
 		if ( (line.find(";") == std::string::npos or line.find(";") != line.size() - 1)
 				and (key != "server" and key != "location") )
-			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : missing `;`");
+			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `;`");
 		value = line.substr(line.find(value) - 1);// TODO :[A] check if value is empty of equal to ";"
-		if (lt.find(key) == lt.end())
-			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : unknown `" + key + "`");
+		if (Check::methods.find(key) == Check::methods.end())
+			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
 		else
-			check_value(key, trim(value), i);
+			check_value(key, trim(value));
 		token += key + value + " ";
-		i++;
+		Check::num_line++;
 	}
 	return token;
 }
