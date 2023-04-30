@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 20:38:05 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/04/30 21:36:11 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,17 +115,26 @@ std::string	check_syntax(std::ifstream &file)
 		ss << line;
 		ss >> key;
 		ss >> value;
+		std::cout << "key :" << key << "$" << std::endl;
 		if ( (line.find(";") == std::string::npos or line.find(";") != line.size() - 1)
-				and (key != "server" and key != "location") )
+				and (key != "server" and key != "location") and key != "}" )
 			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `;`");
-		value = line.substr(line.find(value) - 1);// TODO :[A] check if value is empty of equal to ";"
+		value = trim(line.substr(line.find(value) - 1));						// TODO :[A] check if value is empty of equal to ";"
+		if (std::count(value.begin(), value.end(), ';') > 1)
+			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : more then one `;`");
 		if (Check::methods.find(key) == Check::methods.end())
 			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
+		else if ((key == "server" or key == "location") and value == "{")
+			Check::brackets.push('{');
+		else if (key == "}" and Check::brackets.size() > 0)
+			Check::brackets.pop();
 		else
-			check_value(key, trim(value));
-		token += key + value + " ";
+			check_value(key, value);
+		token += key + " " + value + " ";
 		Check::num_line++;
 	}
+	if (Check::brackets.size() != 0)
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing close bracket `}`");
 	return token;
 }
 
