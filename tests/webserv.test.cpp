@@ -34,4 +34,5 @@ TEST_CASE("check listen", "[parcing]")
 	REQUIRE_NOTHROW(listen_check("127.0.0.1:80", 1));
 	REQUIRE_THROWS(listen_check("127.0.0.:80", 1));
 	REQUIRE_THROWS(listen_check("127.0.0.1::80", 1));
+	REQUIRE_NOTHROW(listen_check("a10000.com.fr:80", 1));
 }
