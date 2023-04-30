@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 15:14:35 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/04/30 18:16:07 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,14 +16,13 @@
 void	listen_check(std::string const & value, const int i)
 {
 	std::string tmp;
-	std::string trim_value = trim(value);
 
 	if (value.find(':') != std::string::npos)
 	{
-		tmp = trim_value.substr(0, trim_value.find(':'));
-		if (!ipAddress(tmp))
-			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid ip address");
-		tmp = trim_value.substr(trim_value.find(':') + 1, trim_value.find(';') - trim_value.find(':') - 1);
+		tmp = value.substr(0, value.find(':'));
+		if (!ipAddress(tmp) and !isDomain(tmp))
+			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid ip address or domain name");
+		tmp = value.substr(value.find(':') + 1, value.find(';') - value.find(':') - 1);
 		if (!isPort(tmp))
 			throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid port number");
 		int x = atoi(tmp.c_str());
@@ -32,8 +31,8 @@ void	listen_check(std::string const & value, const int i)
 	}
 	else
 	{
-		tmp = trim_value.substr(0, trim_value.find(';'));
-		if ( trim_value.find('.') != std::string::npos )
+		tmp = value.substr(0, value.find(';'));
+		if ( value.find('.') != std::string::npos )
 		{
 			if (!ipAddress(tmp))
 				throw std::runtime_error("Line : " + std::to_string(i) + " : syntax error : invalid ip address");
@@ -51,7 +50,22 @@ void	listen_check(std::string const & value, const int i)
 
 void	server_name_check(std::string const & value)
 {
-	(void)value;
+	std::string s(value);
+	s.erase(s.size()- 1, 1);
+	std::stringstream ss(s);
+	while (ss >> s)
+	{
+		s = trim(s);
+		if (s.front() == '-' or s.back() == '-')
+			throw std::runtime_error("Error: syntax error : `" + s + "`");
+		if (s.size() > 255)
+			throw std::runtime_error("Error: syntax error : `" + s + "` : too long");
+		for (size_t i = 0; i < s.size() ;i++)
+		{
+			if (!isalnum(s[i]) and s[i] != '.' and s[i] != '-')
+				throw std::runtime_error("Error: syntax error : `" + s + "`");
+		}
+	}
 }
 
 void	error_page_check(std::string const & value)
