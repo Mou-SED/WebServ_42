@@ -36,3 +36,11 @@ TEST_CASE("check listen", "[parcing]")
 	REQUIRE_THROWS(listen_check("127.0.0.1::80"));
 	REQUIRE_NOTHROW(listen_check("a10000.com.fr:80"));
 }
+
+TEST_CASE("Check Bracket", "[parcing]")
+{
+	std::ifstream file("tests/test.conf");
+	REQUIRE_NOTHROW(check_syntax(file));
+	std::ifstream file2("tests/test2.conf");
+	REQUIRE_THROWS(check_syntax(file2));
+}
