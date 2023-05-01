@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 20:17:01 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/01 13:27:23 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,4 +102,26 @@ void	autoindex_check(std::string const & value)
 	s.erase(s.size() - 1, 1);
 	if (s != "on" and s != "off")
 		throw std::runtime_error("Error: syntax error : missing `on` or `off`");
+}
+
+void	root_check(std::string const & value)
+{
+	if (value == ";")
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `root` value");
+}
+
+void	index_check(std::string const & value)
+{
+	if (value == ";")
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `index` value");
+}
+
+void	location_check(std::string const & value)
+{
+	std::string s(value);
+	if (s.back() != '{')
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `{`");
+	if (s.size() < 2)
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `location` value");
+	Check::brackets.push('{');
 }
