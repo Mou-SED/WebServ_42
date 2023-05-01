@@ -1,8 +1,18 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   Tokenization.hpp                                   :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
+/*   Updated: 2023/05/01 18:50:02 by aaggoujj         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #pragma once
 
-
-#include <string>
-
+#include "webserv.hpp"
 
 enum Tokens
 {
@@ -18,3 +28,25 @@ enum Tokens
 };
 
 
+struct ASTNode
+{
+	Tokens token;
+	std::string value;
+	ASTNode* left;
+	ASTNode* right;
+	ASTNode()
+	{
+		token=TOKEN_NONE;
+		value="";
+		left=nullptr;
+		right=nullptr;
+	}
+	~ASTNode()
+	{
+		delete left;
+		delete right;
+	}
+};
+
+
+void	Tokenization(std::string const &key, std::string const &value, ASTNode *root);

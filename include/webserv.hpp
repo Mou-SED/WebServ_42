@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 22:21:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/01 13:27:37 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/01 18:37:33 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,8 +22,9 @@
 #include <set>
 #include <stdexcept>
 #include "Check.hpp"
+#include "Tokenization.hpp"
 
-std::string	check_syntax(std::ifstream &file);
+void	check_syntax(std::ifstream &file);
 bool	webserv(const char *av);
 bool	parcing(std::ifstream &file, std::string s);
 std::string	trim( std::string const & str );

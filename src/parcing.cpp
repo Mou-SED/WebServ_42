@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/01 14:04:08 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/01 18:57:05 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,10 +112,11 @@ std::string  get_value(std::string const &str, size_t pos)
 	return trim(value);
 }
 
-std::string	check_syntax(std::ifstream &file)
+void	check_syntax(std::ifstream &file)
 {
 	std::string line;
 	std::string token;
+	ASTNode *node = new ASTNode();
 
 	for (size_t i = 0; i < sizeof(type_value) / sizeof(type_value[0]); i++)
 		Check::methods.insert(type_value[i]);
@@ -148,10 +149,10 @@ std::string	check_syntax(std::ifstream &file)
 			else
 				check_value(key, value);
 		}
+		Tokenization(key, value, node);
 	}
 	if (Check::brackets.size() != 0)
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing close bracket `}`");
-	return token;
 }
 
 bool parcing(std::ifstream &file, std::string s)
