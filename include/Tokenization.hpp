@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/01 18:50:02 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/02 21:27:35 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,26 +27,11 @@ enum Tokens
 	TOKEN_INITIALIZED,
 };
 
-
-struct ASTNode
+struct Server
 {
-	Tokens token;
-	std::string value;
-	ASTNode* left;
-	ASTNode* right;
-	ASTNode()
-	{
-		token=TOKEN_NONE;
-		value="";
-		left=nullptr;
-		right=nullptr;
-	}
-	~ASTNode()
-	{
-		delete left;
-		delete right;
-	}
+	std::map<std::string, std::vector<std::string > > directives;
+	std::vector< std::pair<std::string, std::map<std::string, std::vector<std::string > > > > context;
 };
 
-
-void	Tokenization(std::string const &key, std::string const &value, ASTNode *root);
+std::string  get_value(std::string const &str, size_t pos);
+std::vector<Server>	Tokenization(std::ifstream & file);
