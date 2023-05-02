@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/01 18:57:05 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/02 21:13:44 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,6 @@ void	check_syntax(std::ifstream &file)
 {
 	std::string line;
 	std::string token;
-	ASTNode *node = new ASTNode();
 
 	for (size_t i = 0; i < sizeof(type_value) / sizeof(type_value[0]); i++)
 		Check::methods.insert(type_value[i]);
@@ -124,8 +123,7 @@ void	check_syntax(std::ifstream &file)
 	{
 		Check::num_line++;
 		std::string key, value;
-		std::stringstream ss;
-		ss << line;
+		std::stringstream ss(line);
 		ss >> key;
 		value = get_value(line, key.size());
 		if (key[0] == '#' or key == "")
@@ -149,17 +147,68 @@ void	check_syntax(std::ifstream &file)
 			else
 				check_value(key, value);
 		}
-		Tokenization(key, value, node);
 	}
+	file.close();
 	if (Check::brackets.size() != 0)
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing close bracket `}`");
 }
 
+void	print_directivers(std::vector<std::string> directives)
+{
+	for (size_t i = 0; i < directives.size(); i++)
+		std::cout << directives[i] << " ";
+}
+
+void	print_context(std::vector<std::string> context)
+{
+	for (size_t i = 0; i < context.size(); i++)
+		std::cout << context[i] << " ";
+}
+
+void	print_servers(Server &servers, int ind)
+{
+	std::cout << "Sever block" << std::endl;
+	for (int i = 0; i < ind; i++)
+		std::cout << "---";
+	   std::cout << "Directives:" << std::endl;
+	std::cout << servers.directives.size() << std::endl;
+    for (const auto& [key, values] : servers.directives)
+    {
+        std::cout << "- " << key << ": ";
+        for (const auto& value : values)
+        {
+            std::cout << value << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "Contexts:" << std::endl;
+    for (const auto& [name, context] : servers.context)
+    {
+        std::cout << "- " << name << ":" << std::endl;
+        for (const auto& [key, values] : context)
+        {
+            std::cout << "  - " << key << ": ";
+            for (const auto& value : values)
+            {
+                std::cout << value << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
+
+}
+
 bool parcing(std::ifstream &file, std::string s)
 {
+	std::vector<Server> servers;
 	if (not file.is_open())
 		return (false);
 	(void)s;
 	check_syntax(file);
+	file.open(s.c_str());
+	servers = Tokenization(file);
+	for (size_t i = 0; i < servers.size(); i++)
+		print_servers(servers[i], i);
 	return (true);
 }
