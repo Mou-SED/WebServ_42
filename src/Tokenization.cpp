@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/02 21:35:18 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/03 10:46:06 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,8 @@ Tokens get_tokens(std::string const & value)
 Server get_directive(std::string const & key, std::string const & value)
 {
 	Server server;
+	if (server.directives.find(key) != server.directives.end() and (key == "root" or key == "client_max_body_size" or key == "autoindex"))
+		throw std::runtime_error("Syntax error : directive already exist");
 	server.directives[key].push_back(value); // TODO check all the directives don't have the same key like "root, ..., etc"
 	return (server);
 }
@@ -50,6 +52,7 @@ void	parc_location(std::ifstream & file, std::string & value, Server & servers)
 	std::string line;
 	Tokens token;
 
+	value = value.substr(0, value.find_first_of(" {"));
 	servers.context.push_back(std::make_pair(value, std::map<std::string, std::vector<std::string > >()));
 	while (getline(file, line))
 	{
@@ -58,11 +61,17 @@ void	parc_location(std::ifstream & file, std::string & value, Server & servers)
 		std::stringstream ss(line);
 		ss >> key;
 		value = get_value(line, key.size());
+		value = value.substr(0, value.find_first_of(";"));
 		token = get_tokens(key);
 		if (token == TOKEN_RIGHT_BRACKET)
 			break;
 		else if (token == TOKEN_NAME)
+		{
+			if (servers.context[servers.context.size() - 1].second.find(key) != servers.context[servers.context.size() - 1].second.end() and
+				(key == "root" or key == "client_max_body_size" or key == "autoindex"))
+				throw std::runtime_error("Syntax error : " + key + " directive already exist");
 			servers.context[servers.context.size() - 1].second[key].push_back(value);
+		}
 	}
 }
 
@@ -78,6 +87,7 @@ Server	parc_server(std::ifstream & file, std::string & line)
 		std::stringstream ss(line);
 		ss >> key;
 		value = get_value(line, key.size());
+		value = value.substr(0, value.find_first_of(";"));
 		token = get_tokens(key);
 		if (token == TOKEN_RIGHT_BRACKET)
 			break;
@@ -85,6 +95,9 @@ Server	parc_server(std::ifstream & file, std::string & line)
 			parc_location(file, value, server);
 		else if (token == TOKEN_NAME)
 		{
+			if (server.directives.find(key) != server.directives.end() and
+				(key == "root" or key == "client_max_body_size" or key == "autoindex"))
+				throw std::runtime_error("Syntax error : " + key + " directive already exist");
 			server.directives[key].push_back(value);
 		}
 	}
