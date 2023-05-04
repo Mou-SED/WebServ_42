@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/03 10:46:06 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/04 20:21:07 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,7 +104,20 @@ Server	parc_server(std::ifstream & file, std::string & line)
 	return (server);
 }
 
-
+void	setDefaultDirectives( std::vector<Server> & servers )
+{
+	for (size_t i = 0; i < servers.size(); i++)
+    {
+		if ( servers[i].directives.find("root") == servers[i].directives.end() )
+			servers[i].directives["root"].push_back("/var/www/html");
+		if ( servers[i].directives.find("listen") == servers[i].directives.end() )
+			servers[i].directives["listen"].push_back("0.0.0.0:8080");
+		if ( servers[i].directives.find("server_name") == servers[i].directives.end() )
+			servers[i].directives["server_name"].push_back(servers[i].directives["listen"][0].substr(0, servers[i].directives["listen"][0].find_first_of(":")));
+		if ( servers[i].directives.find("error_page") == servers[i].directives.end() )
+			servers[i].directives["error_page"].push_back("404 /404.html");
+    }
+}
 
 std::vector<Server>	Tokenization(std::ifstream & file)
 {
@@ -128,5 +141,6 @@ std::vector<Server>	Tokenization(std::ifstream & file)
 				parc_location(file, line, servers[servers.size() - 1]);
 		}
 	}
+	setDefaultDirectives(servers);
 	return (servers);
 }
