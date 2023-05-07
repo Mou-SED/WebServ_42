@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/04 20:21:07 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/07 16:35:13 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,10 +104,18 @@ Server	parc_server(std::ifstream & file, std::string & line)
 	return (server);
 }
 
+void is_in_vector(std::vector<std::string> & v, std::string const & value)
+{
+	for (size_t i = 0; i < v.size(); i++)
+		if (v[i].find(value) == std::string::npos)
+			v[i] = "0.0.0.0:" + v[i];
+}
+
 void	setDefaultDirectives( std::vector<Server> & servers )
 {
 	for (size_t i = 0; i < servers.size(); i++)
     {
+		is_in_vector(servers[i].directives["listen"], ":");
 		if ( servers[i].directives.find("root") == servers[i].directives.end() )
 			servers[i].directives["root"].push_back("/var/www/html");
 		if ( servers[i].directives.find("listen") == servers[i].directives.end() )
