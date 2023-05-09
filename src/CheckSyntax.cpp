@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   check_syntax.cpp                                   :+:      :+:    :+:   */
+/*   CheckSyntax.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/01 13:27:23 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/09 14:20:50 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "webserv.hpp"
+#include "WebServ.hpp"
 
 
 void	listen_check(std::string const & value)

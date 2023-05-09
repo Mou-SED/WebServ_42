@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Check.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/30 16:29:15 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/04/30 20:37:49 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/09 14:20:36 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 #include <set>
 #include <string>
 #include <stack>
-#include "webserv.hpp"
+#include "WebServ.hpp"
 
 
 struct Check

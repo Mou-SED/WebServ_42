@@ -6,11 +6,11 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/04 20:21:07 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/09 14:21:02 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "webserv.hpp"
+#include "WebServ.hpp"
 
 extern std::string type_value[];
 

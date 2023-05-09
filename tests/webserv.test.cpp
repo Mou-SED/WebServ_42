@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
-#include "webserv.hpp"
+#include "WebServ.hpp"
 
 TEST_CASE("ip address", "[parcing]") {
 	REQUIRE(Check::ipAddress("127.0.0.1") == true);

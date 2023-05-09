@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/02 21:27:35 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/09 14:20:27 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "webserv.hpp"
+#include "WebServ.hpp"
 
 enum Tokens
 {
