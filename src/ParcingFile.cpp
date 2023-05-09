@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 14:21:42 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/09 15:18:25 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,50 +165,11 @@ void	print_context(std::vector<std::string> context)
 		std::cout << context[i] << " ";
 }
 
-void	print_servers(Server &servers, int ind)
-{
-	std::cout << "Sever block" << std::endl;
-	for (int i = 0; i < ind; i++)
-		std::cout << "---";
-	   std::cout << "Directives:" << std::endl;
-	std::cout << servers.directives.size() << std::endl;
-    for (const auto& [key, values] : servers.directives)
-    {
-        std::cout << "- " << key << ": ";
-        for (const auto& value : values)
-        {
-            std::cout << value << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    std::cout << "Contexts:" << std::endl;
-    for (const auto& [name, context] : servers.context)
-    {
-        std::cout << "- " << name << ":" << std::endl;
-        for (const auto& [key, values] : context)
-        {
-            std::cout << "  - " << key << ": ";
-            for (const auto& value : values)
-            {
-                std::cout << value << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
-
-}
-
 bool parcing(std::ifstream &file, std::string s)
 {
-	std::vector<Server> servers;
 	if (not file.is_open())
 		return (false);
 	(void)s;
 	check_syntax(file);
-	file.open(s.c_str());
-	servers = Tokenization(file);
-	for (size_t i = 0; i < servers.size(); i++)
-		print_servers(servers[i], i);
 	return (true);
 }

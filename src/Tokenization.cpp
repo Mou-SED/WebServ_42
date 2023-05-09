@@ -3,15 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 14:28:46 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/09 15:12:44 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "WebServ.hpp"
+#include "Tokenization.hpp"
 
 extern std::string type_value[];
 
@@ -128,6 +129,12 @@ void	setDefaultDirectives( std::vector<Server> & servers )
     }
 }
 
+size_t Server::getPort(void) const
+{
+	std::string port = directives.at("listen")[0];
+	return (std::stoi(port.substr(port.find_first_of(":") + 1)));
+}
+
 std::vector<Server>	Tokenization(std::ifstream & file)
 {
 	std::string line;
@@ -151,5 +158,6 @@ std::vector<Server>	Tokenization(std::ifstream & file)
 		}
 	}
 	setDefaultDirectives(servers);
+
 	return (servers);
 }
