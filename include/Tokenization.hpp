@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 14:20:27 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/09 15:08:39 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ struct Server
 {
 	std::map<std::string, std::vector<std::string > > directives;
 	std::vector< std::pair<std::string, std::map<std::string, std::vector<std::string > > > > context;
+
+	size_t getPort( void ) const;
 };
 
 std::string  get_value(std::string const &str, size_t pos);
