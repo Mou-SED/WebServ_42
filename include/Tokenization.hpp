@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 15:08:39 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/10 17:54:22 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,10 @@ struct Server
 	std::vector< std::pair<std::string, std::map<std::string, std::vector<std::string > > > > context;
 
 	size_t getPort( void ) const;
+	std::string getHost( void ) const;
+	std::string getHostListen( void ) const;
 };
+
 
 std::string  get_value(std::string const &str, size_t pos);
 std::vector<Server>	Tokenization(std::ifstream & file);

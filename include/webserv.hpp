@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 22:21:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 14:35:11 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/10 17:55:00 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,14 @@
 #include <fcntl.h>
 #include "Check.hpp"
 #include "Tokenization.hpp"
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/event.h>
+#include <fcntl.h>
+#include <poll.h>
+
+#define MAX_EVENTS 1024
 
 void	check_syntax(std::ifstream &file);
 bool	webserv(const char *av);

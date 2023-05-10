@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 15:12:44 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/09 17:07:24 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,16 @@ size_t Server::getPort(void) const
 {
 	std::string port = directives.at("listen")[0];
 	return (std::stoi(port.substr(port.find_first_of(":") + 1)));
+}
+
+std::string Server::getHost(void) const
+{
+	return directives.find("server_name")->second[0];
+}
+
+std::string Server::getHostListen(void) const
+{
+	return directives.find("listen")->second[0].substr(0, directives.find("listen")->second[0].find_first_of(":"));
 }
 
 std::vector<Server>	Tokenization(std::ifstream & file)

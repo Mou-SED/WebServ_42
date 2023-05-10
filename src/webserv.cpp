@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 15:48:08 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/10 20:41:06 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,31 +21,93 @@ void	print_servers(Server &servers, int ind)
 		std::cout << "---";
 	std::cout << "Directives:" << std::endl;
 	std::cout << servers.directives.size() << std::endl;
-    for (const auto& [key, values] : servers.directives)
-    {
-        std::cout << "- " << key << ": ";
-        for (const auto& value : values)
-        {
-            std::cout << value << " ";
-        }
-        std::cout << std::endl;
-    }
+	for (const auto& [key, values] : servers.directives)
+	{
+		std::cout << "- " << key << ": ";
+		for (const auto& value : values)
+		{
+			std::cout << value << " ";
+		}
+		std::cout << std::endl;
+	}
 
-    std::cout << "Contexts:" << std::endl;
-    for (const auto& [name, context] : servers.context)
-    {
-        std::cout << "- " << name << ":" << std::endl;
-        for (const auto& [key, values] : context)
-        {
-            std::cout << "  - " << key << ": ";
-            for (const auto& value : values)
-            {
-                std::cout << value << " ";
-            }
-            std::cout << std::endl;
-        }
-    }
+	std::cout << "Contexts:" << std::endl;
+	for (const auto& [name, context] : servers.context)
+	{
+		std::cout << "- " << name << ":" << std::endl;
+		for (const auto& [key, values] : context)
+		{
+			std::cout << "  - " << key << ": ";
+			for (const auto& value : values)
+			{
+				std::cout << value << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
 
+}
+
+
+void	Polloop(Core &core)
+{
+	int ret;
+
+	while ( 1337 )
+	{
+		ret = poll(const_cast<struct pollfd *>(core.get_pollfds().data()), core.get_pollfds().size(), -1);
+		if (ret == -1)
+			throw std::runtime_error("poll() failed");
+		for (size_t i = 0; i < core.get_pollfds().size(); i++)
+		{
+			if (core.get_pollfds()[i].revents & POLLIN || core.get_pollfds()[i].revents & POLLOUT)
+			{
+				std::cout << "here" << std::endl;
+				if (core.get_pollFdsSet().find(core.get_pollfds()[i].fd) == core.get_pollFdsSet().end())
+				{
+					std::cout << "New connection" << std::endl;
+					core.acceptConnection();
+				}
+				else
+				{
+					std::cout << "New request" << std::endl;
+					core.readRequest(core.get_pollfds().back().fd);
+				}
+			}
+		}
+	}
+}
+
+void    createSocket(Core &core)
+{
+	std::map<int, std::vector<Server> > socketFds = core.get_core();
+	std::map<int, std::vector<Server> >::iterator it = socketFds.begin();
+	struct addrinfo hints, *ai;
+
+	core.set_pollfds();
+	while (it != socketFds.end())
+	{
+		int socketFd = it->first;
+		int opt = 1;
+		if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		 	throw std::runtime_error("setsockopt() failed");
+		memset(&hints, 0, sizeof(hints));
+		std::cout << "socketFd: #" << socketFd << "#" << std::endl;
+		std::cout << "Ip address: #" << it->second[0].getHostListen().c_str() << "#" << std::endl;
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		if (getaddrinfo(it->second[0].getHostListen().c_str(),  std::to_string(it->second[0].getPort()).c_str(), &hints, &ai) != 0)
+			throw std::runtime_error("getaddrinfo() failed");
+		if (fcntl(socketFd, F_SETFL, O_NONBLOCK) == -1)
+			throw std::runtime_error("fcntl() failed");
+		if (bind(socketFd, ai->ai_addr, ai->ai_addrlen) == -1)
+			throw std::runtime_error("bind() failed");
+		if (listen(socketFd, SOMAXCONN) == -1)
+			throw std::runtime_error("listen() failed");
+		freeaddrinfo(ai);
+		it++;
+	}
+	Polloop(core);
 }
 
 bool	webserv(const char *av)
@@ -59,11 +121,18 @@ bool	webserv(const char *av)
 
 	file.open(s.c_str());
 	servers = Tokenization(file);
-	for (size_t i = 0; i < servers.size(); i++)
-		print_servers(servers[i], i);
+	//* printing servers ************************//
+	// for (size_t i = 0; i < servers.size(); i++)
+	// 	print_servers(servers[i], i);
 
 	Core core( servers );
-
-	std::cout << "This is the size of our core : " << core.get_core().size() << std::endl;
+	for (auto it : core.get_core())
+	{
+	    std::cout << it.first << " = ";
+	    for (auto it2 : it.second)
+	        std::cout << it2.getHost() << " ";
+	    std::cout << std::endl;
+	}
+	createSocket(core);
 	return (true);
 }
