@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/10 20:41:06 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/11 16:11:06 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ void	print_servers(Server &servers, int ind)
 
 }
 
-
 void	Polloop(Core &core)
 {
 	int ret;
@@ -60,19 +59,14 @@ void	Polloop(Core &core)
 			throw std::runtime_error("poll() failed");
 		for (size_t i = 0; i < core.get_pollfds().size(); i++)
 		{
-			if (core.get_pollfds()[i].revents & POLLIN || core.get_pollfds()[i].revents & POLLOUT)
+			if (core.get_pollfds()[i].revents == 0)
+				continue ;
+			if (core.get_pollfds()[i].revents & POLLIN)
 			{
-				std::cout << "here" << std::endl;
-				if (core.get_pollFdsSet().find(core.get_pollfds()[i].fd) == core.get_pollFdsSet().end())
-				{
-					std::cout << "New connection" << std::endl;
+				if (core.get_pollFdsSet().find(core.get_pollfds()[i].fd) != core.get_pollFdsSet().end())
 					core.acceptConnection();
-				}
 				else
-				{
-					std::cout << "New request" << std::endl;
-					core.readRequest(core.get_pollfds().back().fd);
-				}
+					core.readRequest(core.get_pollfds()[i].fd);
 			}
 		}
 	}
@@ -92,8 +86,6 @@ void    createSocket(Core &core)
 		if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
 		 	throw std::runtime_error("setsockopt() failed");
 		memset(&hints, 0, sizeof(hints));
-		std::cout << "socketFd: #" << socketFd << "#" << std::endl;
-		std::cout << "Ip address: #" << it->second[0].getHostListen().c_str() << "#" << std::endl;
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
 		if (getaddrinfo(it->second[0].getHostListen().c_str(),  std::to_string(it->second[0].getPort()).c_str(), &hints, &ai) != 0)

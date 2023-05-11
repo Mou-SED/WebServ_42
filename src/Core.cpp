@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/10 20:39:20 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/11 16:12:46 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,30 +88,6 @@ std::set<int> const & Core::get_pollFdsSet( void ) const
 	return this->_pollFdsSet;
 }
 
-// for (i = 0; i < num_clients; i++) {
-//             if (fds[i + 1].revents & POLLIN) {
-//                 // Read data from client socket
-//                 char buffer[1024];
-//                 int num_bytes = recv(client_socket[i], buffer, sizeof(buffer), 0);
-//                 if (num_bytes == -1) {
-//                     perror("recv");
-//                     return EXIT_FAILURE;
-//                 } else if (num_bytes == 0) {
-//                     // Connection closed by client
-//                     close(client_socket[i]);
-//                     fds[i + 1].fd = -1;
-//                     num_clients--;
-//                     printf("Client disconnected\n");
-//                 } else {
-//                     // Echo data back to client
-//                     if (send(client_socket[i], buffer, num_bytes, 0) == -1) {
-//                         perror("send");
-//                         return EXIT_FAILURE;
-//                     }
-//                 }
-//             }
-// }
-
 void Core::acceptConnection(void)
 {
 	int newFd;
@@ -122,6 +98,8 @@ void Core::acceptConnection(void)
 		if (this->_pollfds[i].revents & POLLIN)
 		{
 			newFd = accept(this->_pollfds[i].fd, (struct sockaddr *)&clientAddr, &clientAddrLen);
+			fcntl(newFd, F_SETFL, O_NONBLOCK);
+			std::cout << "Accept new connection with fd = " << newFd << std::endl;
 			if (newFd == -1)
 				throw std::runtime_error("accept() failed");
 			this->_pollfds.push_back((struct pollfd) {
@@ -138,7 +116,6 @@ void Core::readRequest(int fd)
 	char buffer[1024];
 	int readBytes;
 
-	std::cout << fd << std::endl;
 	readBytes = recv(fd, buffer, 1024, 0);
 	if (readBytes == -1)
 		throw std::runtime_error("recv() failed");
