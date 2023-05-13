@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 22:21:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/10 17:55:00 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/12 09:18:20 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@
 #include <poll.h>
 
 #define MAX_EVENTS 1024
+#define MAX_BUFFSIZE 1048576
 
 void	check_syntax(std::ifstream &file);
 bool	webserv(const char *av);

@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/11 16:12:46 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/13 16:10:21 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,12 +111,52 @@ void Core::acceptConnection(void)
 	}
 }
 
+std::vector<std::string> split(std::string & str, std::string const & delim)
+{
+	std::vector<std::string> result;
+	size_t start = 0;
+	size_t end = str.find(delim);
+
+	while (end != std::string::npos)
+	{
+		result.push_back(str.substr(start, end - start));
+		start = end + delim.length();
+		end = str.find(delim, start);
+	}
+	result.push_back(str.substr(start, end));
+	return result;
+}
+
+void	requestLine(std::string & line)
+{
+	(void)line;
+}
+
+void	requestHeaders(std::vector<std::string> & lines)
+{
+	(void)lines;
+}
+
+void	requestBody(std::vector<std::string> & lines)
+{
+	(void)lines;
+}
+
+void parseRequest(std::string &request)
+{
+	std::vector<std::string> lines = split(request, "\r\n");
+	requestLine(lines[0]);
+	requestHeaders(lines);
+	requestBody(lines);
+}
+
 void Core::readRequest(int fd)
 {
-	char buffer[1024];
+	char buffer[MAX_BUFFSIZE];
+	std::string request;
 	int readBytes;
 
-	readBytes = recv(fd, buffer, 1024, 0);
+	readBytes = recv(fd, buffer, MAX_BUFFSIZE, 0);
 	if (readBytes == -1)
 		throw std::runtime_error("recv() failed");
 	else if (readBytes == 0)
@@ -124,10 +164,10 @@ void Core::readRequest(int fd)
 		close(fd);
 		this->_pollFdsSet.erase(fd);
 	}
-	else
-	{
+	else{
 		buffer[readBytes] = '\0';
-		std::cout << buffer << std::endl;
+		request = buffer;
+		parseRequest(request);
 	}
 }
 
