@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParcingFile.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 15:18:25 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/12 11:42:05 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,10 +138,10 @@ void	check_syntax(std::ifstream &file)
 				Check::brackets.push('{');
 			if ( (line.find(";") == std::string::npos or line.find(";") != line.size() - 1)
 					and (key != "server" and key != "location" and key != "}") )
-				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `;`");
+				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error");
 			value = trim(line.substr(line.find(value) - 1));
 			if (key != "}" and std::count(value.begin(), value.end(), ';') > 1)
-				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : more then one `;`");
+				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error");
 			if (Check::methods.find(key) == Check::methods.end())
 				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
 			else
