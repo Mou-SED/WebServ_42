@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/13 16:10:21 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/18 14:54:09 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ Core::~Core(void)
 
 void Core::addServer(Server server)
 {
-	// std::cout << server.getPort() << std::endl;
 	if (this->_core.find(server.getPort()) == this->_core.end())
 	{
 		std::vector<Server> servers;
@@ -111,64 +110,57 @@ void Core::acceptConnection(void)
 	}
 }
 
-std::vector<std::string> split(std::string & str, std::string const & delim)
+std::vector<std::string> split(std::string & str, char delim, bool keepIt)
 {
 	std::vector<std::string> result;
 	size_t start = 0;
-	size_t end = str.find(delim);
 
-	while (end != std::string::npos)
+	for (size_t i = 0; i < str.size(); i++)
 	{
-		result.push_back(str.substr(start, end - start));
-		start = end + delim.length();
-		end = str.find(delim, start);
+		if (str[i] == delim)
+		{
+			if (keepIt)
+				result.push_back(str.substr(start, i - start + 1));
+			else
+				result.push_back(str.substr(start, i - start));
+			start = i + 1;
+		}
 	}
-	result.push_back(str.substr(start, end));
+	if (start < str.size())
+		result.push_back(str.substr(start));
 	return result;
 }
 
-void	requestLine(std::string & line)
-{
-	(void)line;
-}
-
-void	requestHeaders(std::vector<std::string> & lines)
-{
-	(void)lines;
-}
-
-void	requestBody(std::vector<std::string> & lines)
-{
-	(void)lines;
-}
-
-void parseRequest(std::string &request)
-{
-	std::vector<std::string> lines = split(request, "\r\n");
-	requestLine(lines[0]);
-	requestHeaders(lines);
-	requestBody(lines);
-}
-
-void Core::readRequest(int fd)
+bool	Core::readRequest(int fd, Request & req)
 {
 	char buffer[MAX_BUFFSIZE];
-	std::string request;
 	int readBytes;
 
 	readBytes = recv(fd, buffer, MAX_BUFFSIZE, 0);
 	if (readBytes == -1)
-		throw std::runtime_error("recv() failed");
+		return (req.status = INTERNAL_SERVER_ERROR, true);
 	else if (readBytes == 0)
 	{
 		close(fd);
 		this->_pollFdsSet.erase(fd);
 	}
-	else{
-		buffer[readBytes] = '\0';
-		request = buffer;
-		parseRequest(request);
+	else
+	{
+		return req.parseRequest(buffer, readBytes);
 	}
+	return false;
+}
+
+void Core::sendResponse(Request &req, int fd)
+{
+	std::cout << "!!!!!!!!!!! sending to fd = " << fd << std::endl;
+	if (req.status == 400)
+		send(fd, "HTTP/1.1 400 Bad Request\r\n", 26, 0);
+	else if (req.status == 500)
+		send(fd, "HTTP/1.1 500 Internal Server Error\r\n", 36, 0);
+	std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-length: 49\n\n <html><body><h1>Hello, Moussa!</h1></body></html>\n";
+	send(fd, response.c_str(), response.length(), 0);
+	return ;
 }
 
 void Core::set_ports(int port)

@@ -3,16 +3,17 @@
 /*                                                        :::      ::::::::   */
 /*   Core.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 14:30:16 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/10 18:39:52 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/13 17:39:40 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
 #include "WebServ.hpp"
+#include "Request.hpp"
 
 
 class Core
@@ -42,5 +43,6 @@ class Core
 
 
 		void	acceptConnection( void );
-		void	readRequest( int fd );
+		bool	readRequest(int fd, Request & req);
+		void	sendResponse(Request &req, int fd);
 };
