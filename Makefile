@@ -93,7 +93,7 @@ endif
 
 # ******************************* Main Targets *********************************
 all: $(NAME)
-	[ -n "$(RUN)" ] && ./$< || echo "$(GREEN) ***** Done! ***** $(NC)"
+	[ -n "$(RUN)" ] && ./$< $(CONFIG) || echo "$(GREEN) ***** Done! ***** $(NC)"
 
 $(NAME): $(OBJS)
 	echo "Linking $(BLUE)$(@F)$(NC)..."
