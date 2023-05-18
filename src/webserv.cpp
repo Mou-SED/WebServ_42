@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   WebServ.cpp                                        :+:      :+:    :+:   */
+/*   webserv.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/11 16:11:06 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/18 13:45:36 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,8 @@ void	print_servers(Server &servers, int ind)
 void	Polloop(Core &core)
 {
 	int ret;
+	bool isDone;
+	Request request;
 
 	while ( 1337 )
 	{
@@ -66,7 +68,24 @@ void	Polloop(Core &core)
 				if (core.get_pollFdsSet().find(core.get_pollfds()[i].fd) != core.get_pollFdsSet().end())
 					core.acceptConnection();
 				else
-					core.readRequest(core.get_pollfds()[i].fd);
+				{
+					isDone = core.readRequest(core.get_pollfds()[i].fd, request);
+					
+					// else if (!isDone)
+					// {
+					// 	core.sendResponse(request, core.get_pollfds()[i].fd);
+					// 	std::cout <<"connection closed" << std::endl;
+					// }
+				}
+			}
+			if (core.get_pollfds()[i].revents & POLLOUT)
+			{
+				if (request.state == DONE)
+					{
+						std::cout << "response sent" << std::endl;
+						core.sendResponse(request, core.get_pollfds()[i].fd);
+						request.clear();
+					}
 			}
 		}
 	}
@@ -84,7 +103,7 @@ void    createSocket(Core &core)
 		int socketFd = it->first;
 		int opt = 1;
 		if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-		 	throw std::runtime_error("setsockopt() failed");
+			throw std::runtime_error("setsockopt() failed");
 		memset(&hints, 0, sizeof(hints));
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
