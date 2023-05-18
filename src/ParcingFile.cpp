@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParcingFile.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/12 11:42:05 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/18 17:34:56 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,13 +54,23 @@ bool Check::isPort( std::string s )
 	return true;
 }
 
-std::string trim( std::string const & str )
+std::string trim( std::string const & str)
 {
 	size_t first = str.find_first_not_of(" \t");
 	if ( first == std::string::npos )
 		return str;
 
 	size_t last = str.find_last_not_of(" \t");
+	return str.substr(first, (last - first + 1));
+}
+
+std::string trim( std::string const & str, std::string const & whitespace)
+{
+	size_t first = str.find_first_not_of(whitespace);
+	if ( first == std::string::npos )
+		return str;
+
+	size_t last = str.find_last_not_of(whitespace);
 	return str.substr(first, (last - first + 1));
 }
 
