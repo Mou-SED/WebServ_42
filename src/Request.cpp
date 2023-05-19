@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/18 17:54:40 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/19 19:56:50 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,37 +59,9 @@ void Request::clear(void)
 	this->status = 0;
 }
 
-bool Request::parsInState(std::vector<std::string> & tokens)
+bool Request::parsingHeaders(std::vector<std::string> &tokens)
 {
-	std::string s[4] = {"REQUEST_LINE", "HEADERS", "BODY", "DONE"};
-	std::cout << "parsInState" << std::endl;
-	std::cout << "state : " << s[state] << std::endl;
-	if ( state == REQUEST_LINE )
-	{
-		std::cout << "REQUEST_LINE" << std::endl;
-		tokens[0] = tokens[0].substr(0,tokens[0].find_first_of("\r"));
-		tokens[0] = tokens[0].substr(0,tokens[0].find_first_of("\n"));
-		std::vector<std::string> requestLine = split(tokens[0], ' ', false);
-		if (requestLine.size() != 3)
-		{
-			std::cout << "requestLine.size() != 3" << std::endl;
-			this->status = 400;
-			return false;
-		}
-		if (requestLine[2] != "HTTP/1.1")
-		{
-			std::cout << "requestLine[2] != \"HTTP/1.1\"" << std::endl;
-			this->status = 505;
-			return false;
-		}
-		this->_method = requestLine[0];
-		this->_uri = requestLine[1];
-		this->state = HEADERS;
-		tokens.erase(tokens.begin());
-	}
-	if ( state == HEADERS )
-	{
-		size_t i = 0;
+	size_t i = 0;
 		std::cout << "HEADERS" << std::endl;
 		for (i = 0; i < tokens.size() && tokens[i].find("\n") != std::string::npos; i++)
 		{
@@ -130,6 +102,50 @@ bool Request::parsInState(std::vector<std::string> & tokens)
 			this->_request.append(tokens[j]);
 		for (auto it : this->_headers)
 			std::cout << it.first << " : " << it.second << std::endl;
+	return false;
+}
+
+bool Request::parsingRequest(std::vector<std::string> &tokens)
+{
+	std::cout << "REQUEST_LINE" << std::endl;
+	tokens[0] = tokens[0].substr(0,tokens[0].find_first_of("\r"));
+	tokens[0] = tokens[0].substr(0,tokens[0].find_first_of("\n"));
+	std::vector<std::string> requestLine = split(tokens[0], ' ', false);
+	if (requestLine.size() != 3)
+	{
+		std::cout << "requestLine.size() != 3" << std::endl;
+		this->status = 400;
+		return false;
+	}
+	if (requestLine[2] != "HTTP/1.1")
+	{
+		std::cout << "requestLine[2] != \"HTTP/1.1\"" << std::endl;
+		this->status = 505;
+		return false;
+	}
+	this->_method = requestLine[0];
+	this->_uri = requestLine[1];
+	this->state = HEADERS;
+	tokens.erase(tokens.begin());
+	if (state == BODY or state == DONE)
+		return true;
+	return false;
+}
+
+bool Request::parsInState(std::vector<std::string> & tokens)
+{
+	std::string s[4] = {"REQUEST_LINE", "HEADERS", "BODY", "DONE"};
+	std::cout << "parsInState" << std::endl;
+	std::cout << "state : " << s[state] << std::endl;
+	if ( state == REQUEST_LINE )
+	{
+		if (not parsingRequest(tokens))
+			return false;
+	}
+	if ( state == HEADERS )
+	{
+		if (not parsingHeaders(tokens))
+			return false;
 	}
 	if (state == BODY)
 		return parseRequest(const_cast<char *>(this->_request.toString().c_str()), this->_request.size());

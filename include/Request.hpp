@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/18 15:46:40 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/19 19:53:05 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,11 +44,12 @@ class Request
 		Request( uint16_t status );
 		bool 	parseRequest(char * buffer, int size);
 		bool	requestLine(std::string & line);
-		bool	requestHeaders(std::vector<std::string> & lines);
-		bool	requestBody(std::vector<std::string> & lines);
 		bool	parsInState(std::vector<std::string> & tokens);
 
 		bool	parsChunkedBody( void );
+		bool	parsingRequest(std::vector<std::string> & tokens);
+		bool	parsingHeaders(std::vector<std::string> & tokens);
+		bool	parsingBody(std::vector<std::string> & tokens);
 
 		bool isValid( void ) const;
 

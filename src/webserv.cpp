@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.cpp                                        :+:      :+:    :+:   */
+/*   WebServ.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/18 13:45:36 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/19 19:48:28 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,25 @@ void	print_servers(Server &servers, int ind)
 
 }
 
+void	setRequest(std::map<int, Request> &requests,const std::vector<struct pollfd> &pollfds)
+{
+	for (size_t i = 0; i < pollfds.size(); i++)
+	{
+		if (pollfds[i].fd != -1)
+		{
+			Request request;
+			requests[pollfds[i].fd] = request;
+		}
+	}
+}
+
 void	Polloop(Core &core)
 {
 	int ret;
 	bool isDone;
-	Request request;
+	std::map<int, Request> requests;
 
+	setRequest(requests, core.get_pollfds());
 	while ( 1337 )
 	{
 		ret = poll(const_cast<struct pollfd *>(core.get_pollfds().data()), core.get_pollfds().size(), -1);
@@ -69,22 +82,16 @@ void	Polloop(Core &core)
 					core.acceptConnection();
 				else
 				{
-					isDone = core.readRequest(core.get_pollfds()[i].fd, request);
-					
-					// else if (!isDone)
-					// {
-					// 	core.sendResponse(request, core.get_pollfds()[i].fd);
-					// 	std::cout <<"connection closed" << std::endl;
-					// }
+					isDone = core.readRequest(core.get_pollfds()[i].fd, requests[core.get_pollfds()[i].fd]);
 				}
 			}
 			if (core.get_pollfds()[i].revents & POLLOUT)
 			{
-				if (request.state == DONE)
+				if (requests[core.get_pollfds()[i].fd].state == DONE)
 					{
 						std::cout << "response sent" << std::endl;
-						core.sendResponse(request, core.get_pollfds()[i].fd);
-						request.clear();
+						core.sendResponse(requests[core.get_pollfds()[i].fd], core.get_pollfds()[i].fd);
+						requests.clear();
 					}
 			}
 		}
