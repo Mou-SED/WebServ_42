@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   UChar.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/18 13:08:48 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/18 17:18:38 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/21 14:35:06 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,10 +19,19 @@ UChar::UChar(void)
 	return ;
 }
 
-UChar::UChar(int size)
+UChar::UChar(size_t size)
 {
 	this->_size = size;
 	this->_buffer.resize(size);
+	return ;
+}
+
+UChar::UChar(char *buffer)
+{
+	this->_size = strlen(buffer);
+	this->_buffer.resize(this->_size);
+	for (size_t i = 0; i < this->_size; i++)
+		this->_buffer[i] = buffer[i];
 	return ;
 }
 
@@ -30,7 +39,7 @@ UChar::UChar(std::string &str)
 {
 	this->_size = str.size();
 	this->_buffer.resize(this->_size);
-	for (int i = 0; i < this->_size; i++)
+	for (size_t i = 0; i < this->_size; i++)
 		this->_buffer[i] = str[i];
 	return ;
 }
@@ -60,7 +69,7 @@ UChar &UChar::operator=(const std::string &rhs)
 {
 	this->_size = rhs.size();
 	this->_buffer.resize(this->_size);
-	for (int i = 0; i < this->_size; i++)
+	for (size_t i = 0; i < this->_size; i++)
 		this->_buffer[i] = rhs[i];
 	return *this;
 }
@@ -96,7 +105,7 @@ unsigned char &UChar::operator[](int index)
 	return this->_buffer[index];
 }
 
-int UChar::size(void) const
+size_t UChar::size(void) const
 {
 	return this->_size;
 }
@@ -122,6 +131,13 @@ void UChar::append(std::string &buffer)
 	return ;
 }
 
+void UChar::append(UChar &buffer)
+{
+	this->_buffer.insert(this->_buffer.end(), buffer._buffer.begin(), buffer._buffer.end());
+	this->_size += buffer._size;
+	return ;
+}
+
 void UChar::clear(void)
 {
 	this->_buffer.clear();
@@ -132,7 +148,7 @@ void UChar::clear(void)
 std::string UChar::toString(void) const
 {
 	std::string str(this->_size, 0);
-	for (int i = 0; i < this->_size; i++)
+	for (size_t i = 0; i < this->_size; i++)
 		str[i] = this->_buffer[i];
 	return str;
 }
@@ -149,7 +165,7 @@ bool UChar::empty(void) const
 
 bool UChar::endWith(std::string &str) const
 {
-	if (this->_size < (int)str.size())
+	if (this->_size < str.size())
 		return false;
 	for (size_t i = 0; i < str.size(); i++)
 		if (this->_buffer[this->_size - str.size() + i] != str[i])
