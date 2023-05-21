@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 14:30:16 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/13 17:39:40 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/21 16:47:24 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,11 @@ class Core
 		std::vector<struct pollfd> const & get_pollfds( void ) const;
 		// int get_socketFd( void ) const;
 		std::set<int> const & get_pollFdsSet( void ) const;
+		std::map<int, Request> getRequests( void ) const;
 
 
-		void	acceptConnection( void );
-		bool	readRequest(int fd, Request & req);
+		void	removeRequest(int fd, std::map<int, Request> &Requests);
+		void	acceptConnection( std::map<int, Request> &Requests );
+		bool	readRequest(int fd, std::map<int, Request> &req);
 		void	sendResponse(Request &req, int fd);
 };
