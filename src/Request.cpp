@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/21 18:40:20 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/22 11:31:44 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -218,8 +218,8 @@ bool Request::mainRequest(char *buffer, int size)
 
 	if (this->state == BODY)
 	{
-		std::cout << "body : " << _body.toString() << std::endl;
-		parsingBody(buffer);
+		// std::cout << "body : " << _body.toString() << std::endl;
+		return  parsingBody(buffer);
 	}
 	else if (line.find("\n") == std::string::npos)
 	{
@@ -251,12 +251,21 @@ bool Request::parsingChunked(char * buffer)
 		catch(const std::exception& e)
 		{
 			std::cerr << e.what() << '\n';
+			this->status = 400;
+			this->state = ERR;
+			return false;
 		}
 	}
 	else
 	{
 		_chunkedBody += buffer;
-		if (_chunkedBody.size() != this->contentLength)
+		std::cout << "chunkedBody : " << _chunkedBody.toString() << std::endl;
+		if (_chunkedBody.size() == this->contentLength)
+		{
+			_chunkedBody.clear();
+			_chunkedTurn = false;
+		}
+		if (_chunkedBody.size() > this->contentLength)
 		{
 			std::cout << "+" << _chunkedBody.toString() << "+" << std::endl;
 			this->status = 400;
@@ -264,8 +273,6 @@ bool Request::parsingChunked(char * buffer)
 			return false;
 		}
 		this->_body += _chunkedBody;
-		_chunkedBody.clear();
-		_chunkedTurn = false;
 	}
 	return true;
 }
