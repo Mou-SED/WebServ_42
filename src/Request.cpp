@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/22 11:31:44 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/22 17:04:42 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,18 @@ void Request::clear(void)
 	this->status = 0;
 }
 
+bool findIf(std::map<std::string, std::string> &headers, std::vector<std::string> const v)
+{
+	for (size_t i = 0; i < v.size(); i++)
+	{
+		std::cout << "find ==== : "  << v[i] << std::endl;
+		if (headers.find(v[i]) == headers.end())
+			return true;
+	}
+	std::cout << "findIf : " << v.size() <<  " " << v[0] << std::endl;
+	return false;
+}
+
 bool Request::parsingHeaders(std::vector<std::string> &tokens)
 {
 	size_t i = 0;
@@ -68,10 +80,16 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 		std::pair<std::string, std::string> header;
 		header = make_pair(tokens[i].substr(0, tokens[i].find(":")), tokens[i].substr(tokens[i].find(":") + 1));
 		std::transform(header.first.begin(), header.first.end(), header.first.begin(), ::tolower);
-		if ((tokens[i] == "\n" or tokens[i] == "\r\n") and (not this->_headers["content-length"].empty() or this->_headers["transfer-encoding"] == "chunked")) // TODO : check if the header is valid
+		if (header.first.empty() or header.second.empty() or not findIf(this->_headers, {"content-length", "transfer-encoding"}) or not findIf(this->_headers, {header.first}))
+		{
+			this->status = 400;
+			this->state = ERR;
+			return false;
+		}
+		if ((tokens[i] == "\n" or tokens[i] == "\r\n") and (not this->_headers["content-length"].empty() or this->_headers.find("transfer-encoding") != this->_headers.end())) // TODO : check if the header is valid
 		{
 			i++;
-			if (this->_headers["transfer-encoding"] == "chunked")
+			if (this->_headers.find("transfer-encoding") != this->_headers.end() and this->_headers["transfer-encoding"] == "chunked")
 			{
 				std::cout << "is chunked" << std::endl;
 				this->isChunked = true;
@@ -89,13 +107,6 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			std::cout << "is doone\n";
 			this->state = DONE;
 			break;
-		}
-		if (header.first.empty() or header.second.empty())
-		{
-			std::cout << "header.first.empty() or value.empty()" << std::endl;
-			this->status = 400;
-			this->state = ERR;
-			return false;
 		}
 		this->_headers[header.first] = trim(header.second, " \r\n");
 	}
