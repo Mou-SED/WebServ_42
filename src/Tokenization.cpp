@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 17:07:24 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/22 19:11:19 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ void	setDefaultDirectives( std::vector<Server> & servers )
     {
 		is_in_vector(servers[i].directives["listen"], ":");
 		if ( servers[i].directives.find("root") == servers[i].directives.end() )
-			servers[i].directives["root"].push_back("/var/www/html");
+			servers[i].directives["root"].push_back("/www/html");
 		if ( servers[i].directives.find("listen") == servers[i].directives.end() )
 			servers[i].directives["listen"].push_back("0.0.0.0:8080");
 		if ( servers[i].directives.find("server_name") == servers[i].directives.end() )
