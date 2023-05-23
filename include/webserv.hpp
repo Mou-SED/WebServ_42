@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Webserv.hpp                                        :+:      :+:    :+:   */
+/*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/07 22:21:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/22 13:15:16 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/23 12:52:37 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,4 +58,6 @@ void	autoindex_check(std::string const & value);
 void	root_check(std::string const & value);
 void	index_check(std::string const & value);
 void	location_check(std::string const & value);
+void	redirectionCheck(std::string const & value);
 
+std::vector<std::string> split(std::string &str, char delim, bool keepIt);

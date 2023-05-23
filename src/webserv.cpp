@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   webserv.cpp                                        :+:      :+:    :+:   */
+/*   WebServ.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/21 16:48:18 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/23 10:51:01 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,7 @@ void	Polloop(Core &core)
 					{
 						std::cout << "response sent" << std::endl;
 						core.sendResponse(requests[core.get_pollfds()[i].fd], core.get_pollfds()[i].fd);
-						requests.clear();
+						requests[core.get_pollfds()[i].fd].clear();
 					}
 			}
 		}
