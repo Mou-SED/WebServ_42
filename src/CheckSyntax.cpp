@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CheckSyntax.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 14:20:50 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/23 12:52:16 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ void	autoindex_check(std::string const & value)
 	std::string s(value);
 	if (s.back() != ';')
 		throw std::runtime_error("Error: syntax error : missing `;`");
-	s = s.substr(strspn(" \t", s.c_str()));
+	s = trim(s.substr(strspn(" \t", s.c_str()) + 1)); 
 	s.erase(s.size() - 1, 1);
 	if (s != "on" and s != "off")
 		throw std::runtime_error("Error: syntax error : missing `on` or `off`");
@@ -124,4 +124,16 @@ void	location_check(std::string const & value)
 	if (s.size() < 2)
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `location` value");
 	Check::brackets.push('{');
+}
+
+void	redirectionCheck(std::string const & value)
+{
+	std::vector<std::string> v;
+	v = split(const_cast<std::string &>(value), ' ', 0);
+	if (v.size() != 2)
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : `return` must be followed by a code and a url");
+	if (v[0] != "301" and v[0] != "302" and v[0] != "303" and v[0] != "307" and v[0] != "308")
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : `return` must be followed by a code and a url");
+	if (v[1].front() != '/' and v[1].front() != '.')
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : `return` must be followed by a code and a url");
 }

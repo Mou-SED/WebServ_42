@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/22 19:11:19 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/23 11:58:31 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,11 @@
 #include "WebServ.hpp"
 #include "Tokenization.hpp"
 
-extern std::string type_value[];
+extern std::vector<std::string> type_value;
 
 Tokens get_tokens(std::string const & value)
 {
-	std::set<std::string> tokens;
-	for (int i = 0; i < 11; i++)
-		if (type_value[i] != "server" and type_value[i] != "location")
-			tokens.insert(type_value[i]);
+	std::set<std::string> tokens(type_value.begin(), type_value.end());
 	if (value == "server")
 		return (TOKEN_SERVER);
 	else if (value == "location")

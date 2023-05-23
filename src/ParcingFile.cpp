@@ -3,20 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   ParcingFile.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/18 17:34:56 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/05/23 12:52:11 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServ.hpp"
+#include "Tokenization.hpp"
 
 int  Check::num_line;
 std::set<std::string> Check::methods;
 std::string Check::key;
 std::string Check::value;
-std::string type_value[] = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex"};
+std::vector<std::string> type_value = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex", "return"};
 std::stack<char> Check::brackets;
 
 bool Check::ipAddress(std::string s)
@@ -85,6 +86,8 @@ bool Check::isDomain( std::string const & s )
 	return false;
 }
 
+
+
 void	check_value(std::string const &key, std::string const & value)
 {
 	if ( (key == "server" and value != "{") )
@@ -110,6 +113,8 @@ void	check_value(std::string const &key, std::string const & value)
 	}
 	else if (key == "autoindex")
 		autoindex_check(value);
+	else if (key == "return")
+		redirectionCheck(value);
 	else if (key != "server" and key != "location")
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
 }
@@ -127,8 +132,7 @@ void	check_syntax(std::ifstream &file)
 	std::string line;
 	std::string token;
 
-	for (size_t i = 0; i < sizeof(type_value) / sizeof(type_value[0]); i++)
-		Check::methods.insert(type_value[i]);
+	Check::methods.insert(type_value.begin(), type_value.end());
 	while (getline(file, line))
 	{
 		Check::num_line++;

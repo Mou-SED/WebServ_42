@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/21 18:38:59 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/23 12:47:10 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,3 @@ public:
 
 	void clear(void);
 };
-std::vector<std::string> split(std::string &str, char delim, bool keepIt);
