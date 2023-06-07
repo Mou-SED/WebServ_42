@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/23 12:52:11 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/24 13:56:57 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,8 +86,6 @@ bool Check::isDomain( std::string const & s )
 	return false;
 }
 
-
-
 void	check_value(std::string const &key, std::string const & value)
 {
 	if ( (key == "server" and value != "{") )
@@ -122,7 +120,7 @@ void	check_value(std::string const &key, std::string const & value)
 std::string  get_value(std::string const &str, size_t pos)
 {
 	std::string value = "";
-	for (size_t i = pos + 1; i < str.size(); i++)
+	for (size_t i = pos + 1; i < str.size() and str[i] != ';'; i++)
 			value.push_back(str[i]);
 	return trim(value);
 }
@@ -135,6 +133,8 @@ void	check_syntax(std::ifstream &file)
 	Check::methods.insert(type_value.begin(), type_value.end());
 	while (getline(file, line))
 	{
+		std::replace(line.begin(), line.end(), '\t', ' ');
+		line = trim(line);
 		Check::num_line++;
 		std::string key, value;
 		std::stringstream ss(line);
