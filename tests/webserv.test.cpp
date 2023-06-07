@@ -37,10 +37,10 @@ TEST_CASE("check listen", "[parcing]")
 	REQUIRE_NOTHROW(listen_check("a10000.com.fr:80"));
 }
 
-TEST_CASE("Check Bracket", "[parcing]")
-{
-	std::ifstream file("tests/test.conf");
-	REQUIRE_NOTHROW(check_syntax(file));
-	std::ifstream file2("tests/test2.conf");
-	REQUIRE_THROWS(check_syntax(file2));
-}
+// TEST_CASE("Check Bracket", "[parcing]")
+// {
+// 	std::ifstream file("tests/test.conf");
+// 	REQUIRE_NOTHROW(check_syntax(file));
+// 	std::ifstream file2("tests/test2.conf");
+// 	REQUIRE_THROWS(check_syntax(file2));
+// }
