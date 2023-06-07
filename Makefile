@@ -111,13 +111,14 @@ $(OBJ_DIR):
 # ******************************** Test config *********************************
 
 # Please write all test suite names here
-TEST_NAMES := webserv
+TEST_NAMES := WebServ 
 
 # Please write all external dependencies here
 # Example: unitName_DEP := dependency1 dependency2 ...
 # Note: Dependencies are written without any extension
 # Note: This can be omitted if the unit has no external dependencies
-webserv_DEP := WebServ ParcingFile CheckSyntax Tokenization Core
+webserv_DEP := CheckSyntax Core Error ParcingFile Request Tokenization UChar WebServ main 
+
 
 # ******************************* Test Targets *********************************
 testall:
