@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/23 12:46:02 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/07 16:02:54 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,8 @@ struct Server
 	size_t getPort( void ) const;
 	std::string getHost( void ) const;
 	std::string getHostListen( void ) const;
+	std::string getRoot( void ) const;
+	std::string getContext(std::string &url) const;
 };
 
 void check_value(std::string const & key, std::string const & value);

@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/23 11:58:31 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/24 13:54:16 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ void	setDefaultDirectives( std::vector<Server> & servers )
     {
 		is_in_vector(servers[i].directives["listen"], ":");
 		if ( servers[i].directives.find("root") == servers[i].directives.end() )
-			servers[i].directives["root"].push_back("/www/html");
+			servers[i].directives["root"].push_back("./www/html");
 		if ( servers[i].directives.find("listen") == servers[i].directives.end() )
 			servers[i].directives["listen"].push_back("0.0.0.0:8080");
 		if ( servers[i].directives.find("server_name") == servers[i].directives.end() )
@@ -142,6 +142,21 @@ std::string Server::getHostListen(void) const
 	return directives.find("listen")->second[0].substr(0, directives.find("listen")->second[0].find_first_of(":"));
 }
 
+std::string Server::getRoot(void) const
+{
+	return directives.find("root")->second[0];
+}
+
+std::string Server::getContext(std::string &url) const
+{
+	for (size_t i = 0; i < this->context.size(); i++)
+	{
+		if (url.find(this->context[i].first) != std::string::npos)
+			return this->context[i].first;
+	}
+	return "";
+}
+
 std::vector<Server>	Tokenization(std::ifstream & file)
 {
 	std::string line;
@@ -150,6 +165,7 @@ std::vector<Server>	Tokenization(std::ifstream & file)
 
 	while (getline(file, line))
 	{
+		std::replace(line.begin(), line.end(), '\t', ' ');
 		std::string key;
 		std::stringstream ss(line);
 		ss >> key;
