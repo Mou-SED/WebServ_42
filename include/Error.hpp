@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/22 13:03:04 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/22 15:02:31 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/23 15:36:10 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,16 +55,16 @@ enum ERRORS {
 class Error
 {
 	private:
-		ERRORS error;
+		uint16_t error;
 		std::string error_page;
 		std::string error_message;
 		std::string error_code;
 	public:
 		Error();
-		Error(ERRORS error);
-		Error(ERRORS error, std::string error_page);
+		Error(uint16_t error);
+		Error(uint16_t error, std::string error_page);
 		Error(const Error &src);
 		~Error();
-
+		std::string const errorMessage(std::string msg);
 		// std::string	genetatErrorPage( void );
 };
