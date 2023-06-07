@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/18 12:59:55 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/21 14:35:19 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/23 18:33:22 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ class UChar
 		UChar & operator+=( const UChar & rhs );
 		UChar & operator+=( const char * rhs );
 		UChar & operator+=( const std::string & rhs );
+		void	push_front( std::string & str );
+		std::vector<unsigned char>  getUChar( void );
 		unsigned char & operator[]( int index );
 		size_t size( void ) const;
 		void resize( int size );

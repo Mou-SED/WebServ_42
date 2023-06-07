@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/18 13:08:48 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/21 14:35:06 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/05/23 18:33:32 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,6 +98,18 @@ UChar &UChar::operator+=(const std::string &rhs)
 	this->_buffer.insert(this->_buffer.end(), rhs.begin(), rhs.end());
 	this->_size += rhs.size();
 	return *this;
+}
+
+void UChar::push_front(std::string &str)
+{
+	this->_buffer.insert(this->_buffer.begin(), str.begin(), str.end());
+	this->_size += str.size();
+	return ;
+}
+
+std::vector<unsigned char> UChar::getUChar(void)
+{
+	return this->_buffer;
 }
 
 unsigned char &UChar::operator[](int index)
