@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/23 12:52:16 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/07 16:08:17 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,8 @@ void	location_check(std::string const & value)
 void	redirectionCheck(std::string const & value)
 {
 	std::vector<std::string> v;
-	v = split(const_cast<std::string &>(value), ' ', 0);
+	std::string s(trim(value));
+	v = split( s, ' ', false);
 	if (v.size() != 2)
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : `return` must be followed by a code and a url");
 	if (v[0] != "301" and v[0] != "302" and v[0] != "303" and v[0] != "307" and v[0] != "308")
