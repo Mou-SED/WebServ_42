@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/07 16:20:29 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/09 15:46:00 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@
 #include <poll.h>
 #include "Error.hpp"
 #include "dirent.h"
+#include "Utils.hpp"
 
 #define MAX_EVENTS 1024
 #define MAX_BUFFSIZE 1048576
