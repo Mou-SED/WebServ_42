@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/22 17:04:42 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/08 20:48:35 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,61 +60,103 @@ void Request::clear(void)
 	this->status = 0;
 }
 
-bool findIf(std::map<std::string, std::string> &headers, std::vector<std::string> const v)
+std::string Request::getContentType()
+{
+	std::map<std::string, std::string> m;
+	m["html"] = "text/html";
+	m["htm"] = "text/html";
+	m["jpg"] = "image/jpeg";
+	m["jpeg"] = "image/jpeg";
+	m["png"] = "image/png";
+	m["gif"] = "image/gif";
+	m["css"] = "text/css";
+	m["js"] = "text/javascript";
+	m["json"] = "application/json";
+	m["xml"] = "application/xml";
+	m["pdf"] = "application/pdf";
+	m["zip"] = "application/zip";
+	m["mp4"] = "video/mp4";
+	m["webm"] = "video/webm";
+	m["mp3"] = "audio/mp3";
+	m["ogg"] = "audio/ogg";
+	m["wav"] = "audio/wav";
+	m["txt"] = "text/plain";
+	m[""] = "application/octet-stream";
+	if (m.find(this->_uri.substr(this->_uri.find_last_of(".") + 1)) != m.end())
+		return m[this->_uri.substr(this->_uri.find_last_of(".") + 1)];
+	else
+		return m[""];
+}
+
+std::string Request::getContentLength(void)
+{
+	std::ifstream File(this->_uri, std::ios::binary);
+	if (!File)
+	{
+		throw std::runtime_error("File not found");
+	}
+
+	// Read the video file data
+	std::ostringstream oss;
+	oss << File.rdbuf();
+	return std::to_string((oss.str().size()));
+}
+
+bool findIf( std::map<std::string, std::string> &headers, std::vector<std::string> const v )
 {
 	for (size_t i = 0; i < v.size(); i++)
 	{
-		std::cout << "find ==== : "  << v[i] << std::endl;
 		if (headers.find(v[i]) == headers.end())
 			return true;
 	}
-	std::cout << "findIf : " << v.size() <<  " " << v[0] << std::endl;
+
 	return false;
 }
 
 bool Request::parsingHeaders(std::vector<std::string> &tokens)
 {
 	size_t i = 0;
-	for (i = 0; i < tokens.size() && tokens[i].find("\n") != std::string::npos; i++)
+
+	for ( ; i < tokens.size() && tokens[i].find("\n") != std::string::npos; i++ )
 	{
 		std::pair<std::string, std::string> header;
-		header = make_pair(tokens[i].substr(0, tokens[i].find(":")), tokens[i].substr(tokens[i].find(":") + 1));
+
+		header = make_pair(
+			tokens[i].substr(0, tokens[i].find(":")),
+			tokens[i].substr(tokens[i].find(":") + 1)
+		);
 		std::transform(header.first.begin(), header.first.end(), header.first.begin(), ::tolower);
-		if (header.first.empty() or header.second.empty() or not findIf(this->_headers, {"content-length", "transfer-encoding"}) or not findIf(this->_headers, {header.first}))
-		{
-			this->status = 400;
+
+		if ( header.first.empty() or header.second.empty() or not findIf(this->_headers, {"content-length", "transfer-encoding"}) or not findIf(this->_headers, {header.first})
+			or (not this->_headers["content-length"].empty() and not this->_headers["transfer-encoding"].empty()))
+		{ // TODO : check headers can be duplicated in nginx.
+			this->status = BAD_REQUEST;
 			this->state = ERR;
+
 			return false;
 		}
-		if ((tokens[i] == "\n" or tokens[i] == "\r\n") and (not this->_headers["content-length"].empty() or this->_headers.find("transfer-encoding") != this->_headers.end())) // TODO : check if the header is valid
+		if ((tokens[i] == "\n" or tokens[i] == "\r\n") and (not this->_headers["content-length"].empty() or not this->_headers["transfer-encoding"].empty()) ) // TODO : check if the header is valid
 		{
 			i++;
-			if (this->_headers.find("transfer-encoding") != this->_headers.end() and this->_headers["transfer-encoding"] == "chunked")
-			{
-				std::cout << "is chunked" << std::endl;
-				this->isChunked = true;
-			}
-			else if (not this->_headers["content-length"].empty())
-			{
-				std::cout << "is Body" << std::endl;
-				this->contentLength = std::stoi(this->_headers["content-length"]);
-			}
+			if ( this->_headers["transfer-encoding"] == "chunked" ) this->isChunked = true;
+			if (not this->_headers["content-length"].empty()) this->contentLength = std::stoi(this->_headers["content-length"]);
+
 			this->state = BODY;
+
 			break;
 		}
-		else if (tokens[i] == "\n" or tokens[i] == "\r\n")
+		else if ( tokens[i] == "\n" or tokens[i] == "\r\n" )
 		{
-			std::cout << "is doone\n";
 			this->state = DONE;
 			break;
 		}
 		this->_headers[header.first] = trim(header.second, " \r\n");
 	}
+
 	this->_request.clear();
 	for (size_t j = i; j < tokens.size(); j++)
 		this->_request.append(tokens[j]);
-	for (auto it : this->_headers)
-		std::cout << it.first << " : " << it.second << std::endl;
+
 	return true;
 }
 
@@ -125,97 +167,89 @@ void remove_end(std::string &str, std::string to_remove)
 		str = str.substr(0, pos);
 }
 
-bool check_list(std::string &line, std::vector<std::string> list)
+bool checkMethod(std::string &line)
 {
+	std::vector<std::string> list = {"GET", "POST", "DELETE"};
+
 	for (size_t i = 0; i < list.size(); i++)
 	{
 		if (line == list[i])
 			return true;
 	}
+
 	return false;
 }
 
-bool Request::parsingRequest(std::vector<std::string> &tokens)
+bool Request::parsingStartLine(std::vector<std::string> &tokens)
 {
 	remove_end(tokens[0], "\r\n");
-	std::cout << "tokens[0] == " << tokens[0] << std::endl;
 	std::vector<std::string> requestLine = split(tokens[0], ' ', false);
-	if (requestLine.size() != 3 or not check_list(requestLine[0], {"GET", "POST", "DELETE"}))
+
+	if (requestLine.size() != 3 or not checkMethod(requestLine[0])) // TODO : check method should return another error (METHOD_NOT_IMPLEMENTED)
 	{
-		std::cout << "size == " << requestLine.size() << std::endl;
-		std::cout << "tokens[0] == " << tokens[0] << std::endl;
-		std::cout << "requestLine.size() != 3" << std::endl;
-		this->status = 400;
+		this->status = BAD_REQUEST;
 		this->state = ERR;
+
 		return false;
 	}
 	if (requestLine[2] != "HTTP/1.1")
 	{
-		std::cout << requestLine[2] << " != \"HTTP/1.1\"" << std::endl; //! ERROR
-		this->status = 505;
+		this->status = VERSION_NOT_SUPPORTED;
 		this->state = ERR;
+
 		return false;
 	}
+
 	this->_method = requestLine[0];
 	this->_uri = requestLine[1];
 	this->state = HEADERS;
 	tokens.erase(tokens.begin());
+
 	return true;
 }
 
 bool Request::parsingState(std::vector<std::string> &tokens)
 {
-	std::string s[4] = {"REQUEST_LINE", "HEADERS", "BODY", "DONE"};
-	std::cout << "parsingState" << std::endl;
-	std::cout << "state : " << s[state] << std::endl;
-	if (state == REQUEST_LINE)
+	if ( state == REQUEST_LINE )
 	{
-		if (not parsingRequest(tokens))
-			return false;
+		if ( not parsingStartLine(tokens) ) return false;
 	}
-	if (state == HEADERS)
+	if ( state == HEADERS )
 	{
-		if (not parsingHeaders(tokens))
-		{
-			std::cout << "not parsingHeaders" << std::endl;
-			return false;
-		}
+		if ( not parsingHeaders(tokens) ) return false;
 	}
-	if (state == BODY)
+	if ( state == BODY )
 		return mainRequest(const_cast<char *>(this->_request.toString().c_str()), this->_request.size());
+
 	return true;
 }
 
-bool Request::ReadLine(std::string &line)
+bool Request::readLine(std::string &line)
 {
-	if (not this->_request.empty())
+	if ( not this->_request.empty() )
 	{
 		this->_request += line;
 		line = this->_request.toString();
 	}
+
 	std::vector<std::string> tokens = split(line, '\n', true);
+
 	return parsingState(tokens);
 }
 
 bool Request::parsingBody(char *buffer)
 {
-	if (this->isChunked)
+	if ( this->isChunked )
 	{
-		if (not parsingChunked(buffer))
-			return false;
+		if ( not parsingChunked(buffer) ) return false;
 	}
 	else
 	{
 		_body += buffer;
-		if (_body.size() == this->contentLength)
-		{
-			this->state = DONE;
-			this->isDone = true;
-		}
+		if (_body.size() == this->contentLength) this->state = DONE;
 		else if (_body.size() > this->contentLength)
 		{
-			std::cout << "+" << _body.toString() << "+" << std::endl;
-			this->status = 400;
+			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;
 		}
@@ -223,46 +257,48 @@ bool Request::parsingBody(char *buffer)
 	return true;
 }
 
+void Request::setUri(std::string uri)
+{
+	this->_uri = uri;
+}
+
 bool Request::mainRequest(char *buffer, int size)
 {
 	std::string line(buffer, size);
 
-	if (this->state == BODY)
+	if ( this->state == BODY )
 	{
-		// std::cout << "body : " << _body.toString() << std::endl;
-		return  parsingBody(buffer);
+		return parsingBody(buffer);
 	}
-	else if (line.find("\n") == std::string::npos)
+	else if ( line.find("\n") == std::string::npos )
 	{
 		this->_request += line;
 		return false;
 	}
 	else
-		return (ReadLine(line));
-	return true;
+		return ( readLine(line) );
 }
 
-bool Request::parsingChunked(char * buffer)
+bool Request::parsingChunked(char *buffer)
 {
 	if (not _chunkedTurn)
 	{
 		try
 		{
-			if (std::string(buffer).find("\n") == std::string::npos)
-				return false;
+			if ( std::string(buffer).find("\n") == std::string::npos ) return false;
+
 			this->contentLength = std::stoi(std::string(buffer), 0, 16);
 			if (this->contentLength == 0)
 			{
 				this->state = DONE;
-				this->isDone = true;
 				return true;
 			}
 			_chunkedTurn = true;
 		}
-		catch(const std::exception& e)
+		catch (const std::exception &e)
 		{
 			std::cerr << e.what() << '\n';
-			this->status = 400;
+			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;
 		}
@@ -270,7 +306,6 @@ bool Request::parsingChunked(char * buffer)
 	else
 	{
 		_chunkedBody += buffer;
-		std::cout << "chunkedBody : " << _chunkedBody.toString() << std::endl;
 		if (_chunkedBody.size() == this->contentLength)
 		{
 			_chunkedBody.clear();
@@ -278,12 +313,12 @@ bool Request::parsingChunked(char * buffer)
 		}
 		if (_chunkedBody.size() > this->contentLength)
 		{
-			std::cout << "+" << _chunkedBody.toString() << "+" << std::endl;
-			this->status = 400;
+			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;
 		}
 		this->_body += _chunkedBody;
 	}
+
 	return true;
 }

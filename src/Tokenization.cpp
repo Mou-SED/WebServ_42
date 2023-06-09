@@ -6,17 +6,16 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/24 13:54:16 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/09 14:48:39 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 #include "WebServ.hpp"
 #include "Tokenization.hpp"
 
 extern std::vector<std::string> type_value;
 
-Tokens get_tokens(std::string const & value)
+Tokens get_tokens(std::string const &value)
 {
 	std::set<std::string> tokens(type_value.begin(), type_value.end());
 	if (value == "server")
@@ -37,7 +36,7 @@ Tokens get_tokens(std::string const & value)
 		return (TOKEN_NONE);
 }
 
-Server get_directive(std::string const & key, std::string const & value)
+Server get_directive(std::string const &key, std::string const &value)
 {
 	Server server;
 	if (server.directives.find(key) != server.directives.end() and (key == "root" or key == "client_max_body_size" or key == "autoindex"))
@@ -46,13 +45,13 @@ Server get_directive(std::string const & key, std::string const & value)
 	return (server);
 }
 
-void	parc_location(std::ifstream & file, std::string & value, Server & servers)
+void parc_location(std::ifstream &file, std::string &value, Server &servers)
 {
 	std::string line;
 	Tokens token;
 
 	value = value.substr(0, value.find_first_of(" {"));
-	servers.context.push_back(std::make_pair(value, std::map<std::string, std::vector<std::string > >()));
+	servers.context.push_back(std::make_pair(value, std::map<std::string, std::vector<std::string>>()));
 	while (getline(file, line))
 	{
 		std::string key;
@@ -74,7 +73,7 @@ void	parc_location(std::ifstream & file, std::string & value, Server & servers)
 	}
 }
 
-Server	parc_server(std::ifstream & file, std::string & line)
+Server parc_server(std::ifstream &file, std::string &line)
 {
 	Tokens token;
 	Server server;
@@ -103,27 +102,27 @@ Server	parc_server(std::ifstream & file, std::string & line)
 	return (server);
 }
 
-void is_in_vector(std::vector<std::string> & v, std::string const & value)
+void is_in_vector(std::vector<std::string> &v, std::string const &value)
 {
 	for (size_t i = 0; i < v.size(); i++)
 		if (v[i].find(value) == std::string::npos)
 			v[i] = "0.0.0.0:" + v[i];
 }
 
-void	setDefaultDirectives( std::vector<Server> & servers )
+void setDefaultDirectives(std::vector<Server> &servers)
 {
 	for (size_t i = 0; i < servers.size(); i++)
-    {
+	{
 		is_in_vector(servers[i].directives["listen"], ":");
-		if ( servers[i].directives.find("root") == servers[i].directives.end() )
+		if (servers[i].directives.find("root") == servers[i].directives.end())
 			servers[i].directives["root"].push_back("./www/html");
-		if ( servers[i].directives.find("listen") == servers[i].directives.end() )
+		if (servers[i].directives.find("listen") == servers[i].directives.end())
 			servers[i].directives["listen"].push_back("0.0.0.0:8080");
-		if ( servers[i].directives.find("server_name") == servers[i].directives.end() )
+		if (servers[i].directives.find("server_name") == servers[i].directives.end())
 			servers[i].directives["server_name"].push_back(servers[i].directives["listen"][0].substr(0, servers[i].directives["listen"][0].find_first_of(":")));
-		if ( servers[i].directives.find("error_page") == servers[i].directives.end() )
+		if (servers[i].directives.find("error_page") == servers[i].directives.end())
 			servers[i].directives["error_page"].push_back("404 /404.html");
-    }
+	}
 }
 
 size_t Server::getPort(void) const
@@ -132,7 +131,7 @@ size_t Server::getPort(void) const
 	return (std::stoi(port.substr(port.find_first_of(":") + 1)));
 }
 
-std::string Server::getHost(void) const
+std::string Server::getServerName(void) const
 {
 	return directives.find("server_name")->second[0];
 }
@@ -157,7 +156,7 @@ std::string Server::getContext(std::string &url) const
 	return "";
 }
 
-std::vector<Server>	Tokenization(std::ifstream & file)
+std::vector<Server> Tokenization(std::ifstream &file)
 {
 	std::string line;
 	Tokens token;
@@ -170,7 +169,7 @@ std::vector<Server>	Tokenization(std::ifstream & file)
 		std::stringstream ss(line);
 		ss >> key;
 		token = get_tokens(key);
-		if (token == TOKEN_SERVER) //TODO : part_server
+		if (token == TOKEN_SERVER) // TODO : part_server
 			servers.push_back(parc_server(file, line));
 		else if (token == TOKEN_LOCATION) // TODO : part_location
 		{

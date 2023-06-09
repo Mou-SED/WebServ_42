@@ -5,8 +5,8 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/07 22:21:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/23 12:52:37 by aaggoujj         ###   ########.fr       */
+/*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
+/*   Updated: 2023/06/07 16:20:29 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@
 #include <fcntl.h>
 #include <poll.h>
 #include "Error.hpp"
+#include "dirent.h"
 
 #define MAX_EVENTS 1024
 #define MAX_BUFFSIZE 1048576

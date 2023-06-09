@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/07 16:02:54 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/09 11:11:07 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ struct Server
 	std::vector< std::pair<std::string, std::map<std::string, std::vector<std::string > > > > context;
 
 	size_t getPort( void ) const;
-	std::string getHost( void ) const;
+	std::string getServerName( void ) const;
 	std::string getHostListen( void ) const;
 	std::string getRoot( void ) const;
 	std::string getContext(std::string &url) const;
