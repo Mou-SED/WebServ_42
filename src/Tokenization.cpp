@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/09 14:48:39 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/09 16:04:48 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -136,7 +136,7 @@ std::string Server::getServerName(void) const
 	return directives.find("server_name")->second[0];
 }
 
-std::string Server::getHostListen(void) const
+std::string Server::getHost(void) const
 {
 	return directives.find("listen")->second[0].substr(0, directives.find("listen")->second[0].find_first_of(":"));
 }

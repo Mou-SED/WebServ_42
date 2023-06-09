@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/09 11:11:07 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/09 16:04:48 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ struct Server
 
 	size_t getPort( void ) const;
 	std::string getServerName( void ) const;
-	std::string getHostListen( void ) const;
+	std::string getHost( void ) const;
 	std::string getRoot( void ) const;
 	std::string getContext(std::string &url) const;
 };
