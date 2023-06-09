@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/09 17:41:03 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/09 19:50:50 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,8 +121,42 @@ void Core::start( void )
 				}
 				else
 				{
-					// Read request
-					std::cerr << "Read request" << std::endl;
+					this->readRequest( currentFd );
+				}
+			}
+			else if ( this->_pollFds[i].revents & POLLOUT )
+			{
+				if ( this->_requests[currentFd].state == DONE or this->_requests[currentFd].state == ERR )
+				{
+					std::cerr << "Send response" << std::endl;
+
+					std::string s;
+
+					if (this->_requests[currentFd].state == DONE)
+					{
+						s = "HTTP/1.1 200 OK\r\n"
+							"Content-Type: text/plain\r\n"
+							"Content-Length: 12\r\n"
+							"\r\n"
+							"Hello world!";
+					}
+					else if (this->_requests[currentFd].state == ERR)
+					{
+						s = "HTTP/1.1 400 Bad request\r\n"
+							"Content-Type: text/plain\r\n"
+							"Content-Length: 11\r\n"
+							"\r\n"
+							"Bad request";
+					}
+					send(currentFd, s.c_str(), s.length(), 0);
+					this->_requests[currentFd].state = SENT;
+				}
+				else if ( this->_requests[currentFd].state == SENT )
+				{
+					this->removePollFd( currentFd );
+					this->_serversByFd.erase( currentFd );
+					this->_requests.erase( currentFd );
+					close( currentFd );
 				}
 			}
 		}
@@ -145,7 +179,7 @@ void Core::acceptNewConnection( int serverFd )
 
 	this->_serversByFd[newFd] = this->_serversByFd[serverFd];
 
-	// TODO: Create request object
+	this->_requests[newFd] = Request();
 
 	return ;
 }
@@ -181,4 +215,25 @@ void Core::bindServerSockets(void)
 		if ( ret == -1 )
 			throw std::runtime_error( strerror( errno ) );
 	}
+}
+
+void Core::readRequest( int clientFd )
+{
+	char buffer[BUFSIZ + 1];
+
+	ssize_t readBytes = recv( clientFd, buffer, BUFSIZ, 0 );
+	if ( readBytes == -1  )
+		throw std::runtime_error( strerror( errno ) );
+
+	buffer[readBytes] = '\0';
+
+	Request &request = this->_requests[clientFd];
+	if ( readBytes == 0 )
+	{
+		// INFO: The client has closed the connection
+		request.state = SENT;
+	}
+	request.mainRequest( buffer, readBytes );
+
+	return ;
 }

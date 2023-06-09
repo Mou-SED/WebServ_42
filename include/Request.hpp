@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/09 11:52:49 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/09 19:29:01 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 #include "WebServ.hpp"
 #include "UChar.hpp"
 
-enum state
+enum State
 {
 	REQUEST_LINE,
 	HEADERS,
@@ -37,16 +37,15 @@ class Request
 		bool _chunkedTurn = false;
 
 	public:
-		state state;
+		State state;
 		bool bodyCompleted;
 		bool isChunked;
 		uint16_t contentLength;
 		uint16_t status;
 		Request(void);
-		Request(uint16_t status);
 		bool mainRequest(char *buffer, int size);
 		bool readLine(std::string &line);
-		bool parsingState(std::vector<std::string> &tokens);
+		bool parsing(std::vector<std::string> &tokens);
 
 		bool parsingChunked(char *buffer);
 		bool parsingStartLine(std::vector<std::string> &tokens);

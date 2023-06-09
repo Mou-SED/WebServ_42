@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/08 20:48:35 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/09 19:29:15 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,7 @@ Request::Request(void)
 	state = REQUEST_LINE;
 	this->isChunked = false;
 	this->contentLength = 0;
-	this->status = 200;
-
-	return;
-}
-
-Request::Request(uint16_t status)
-{
-	this->status = status;
+	this->status = OK;
 
 	return;
 }
@@ -208,7 +201,7 @@ bool Request::parsingStartLine(std::vector<std::string> &tokens)
 	return true;
 }
 
-bool Request::parsingState(std::vector<std::string> &tokens)
+bool Request::parsing(std::vector<std::string> &tokens)
 {
 	if ( state == REQUEST_LINE )
 	{
@@ -234,7 +227,7 @@ bool Request::readLine(std::string &line)
 
 	std::vector<std::string> tokens = split(line, '\n', true);
 
-	return parsingState(tokens);
+	return parsing(tokens);
 }
 
 bool Request::parsingBody(char *buffer)
