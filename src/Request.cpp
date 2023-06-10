@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/09 19:29:15 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/10 17:41:03 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,11 @@ void Request::clear(void)
 	this->state = REQUEST_LINE;
 	this->isChunked = false;
 	this->status = 0;
+}
+
+uint16_t Request::getStatus(void) const
+{
+	return this->status;
 }
 
 std::string Request::getContentType()
@@ -212,7 +217,7 @@ bool Request::parsing(std::vector<std::string> &tokens)
 		if ( not parsingHeaders(tokens) ) return false;
 	}
 	if ( state == BODY )
-		return mainRequest(const_cast<char *>(this->_request.toString().c_str()), this->_request.size());
+		return mainParsingRequest(const_cast<char *>(this->_request.toString().c_str()), this->_request.size());
 
 	return true;
 }
@@ -255,7 +260,7 @@ void Request::setUri(std::string uri)
 	this->_uri = uri;
 }
 
-bool Request::mainRequest(char *buffer, int size)
+bool Request::mainParsingRequest(char *buffer, int size)
 {
 	std::string line(buffer, size);
 

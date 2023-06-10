@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/09 19:29:01 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/10 16:59:13 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,7 @@ class Request
 		uint16_t contentLength;
 		uint16_t status;
 		Request(void);
-		bool mainRequest(char *buffer, int size);
+		bool mainParsingRequest(char *buffer, int size);
 		bool readLine(std::string &line);
 		bool parsing(std::vector<std::string> &tokens);
 
@@ -62,4 +62,5 @@ class Request
 		std::string getContentType(void);
 		std::string getContentLength(void);
 		void clear(void);
+		uint16_t getStatus( void ) const;
 };

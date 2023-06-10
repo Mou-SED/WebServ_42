@@ -3,44 +3,37 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/09 11:59:19 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/10 19:51:21 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Response.hpp"
 
-Response::Response(void)
+Response::Response( void )
 {
 	bytesSent = 0;
 	return ;
 }
 
-Response::Response(std::string status)
+Response::Response( uint16_t status )
 {
 	bytesSent = 0;
 	this->_status = status;
 	return ;
 }
 
-Response::Response(Response const &src)
+Response::Response( Request const & req )
 {
 	bytesSent = 0;
-	*this = src;
+	this->_request = req;
+	this->_status = req.getStatus();
 	return ;
 }
 
-Response::Response(Server server, Request req)
-{
-	bytesSent = 0;
-	this->_server = server;
-	this->_req = req;
-	return ;
-}
-
-Response::~Response(void)
+Response::~Response( void )
 {
 	return ;
 }
@@ -52,14 +45,14 @@ std::string Response::getResponse(void) const
 
 std::string Response::getDate(void)
 {
-	time_t rawtime;
-	struct tm * timeinfo;
+	time_t rawTime;
+	struct tm * timeInfo;
 	char buffer[80];
 
-	time (&rawtime);
-	timeinfo = localtime(&rawtime);
+	time (&rawTime);
+	timeInfo = localtime(&rawTime);
 
-	strftime(buffer, 80, "%a, %d %b %Y %H:%M:%S %Z", timeinfo);
+	strftime(buffer, 80, "%a, %d %b %Y %H:%M:%S %Z", timeInfo);
 	std::string str(buffer);
 
 	return str;
@@ -67,7 +60,7 @@ std::string Response::getDate(void)
 
 std::string openUri(std::string path)
 {
-	    std::ifstream ifs(path.c_str());
+	std::ifstream ifs(path.c_str());
 
     return std::string(
         std::istreambuf_iterator<char>(ifs),
@@ -75,34 +68,54 @@ std::string openUri(std::string path)
     );
 }
 
+void Response::toString(void)
+{
+	this->statusLineToStirng();
+	this->headersToString();
+	this->bodyToString();
+}
+
+void Response::statusLineToStirng(void)
+{
+	this->_response += "HTTP/1.1 ";
+	this->_response += std::to_string(this->_status);
+	this->_response += "\r\n";
+}
+
+void Response::headersToString(void)
+{
+	this->_response += "Server: WebServ/1.0.0 (Unix)\r\n";
+	this->_response += "Date: " + getDate() + "\r\n";
+	this->_response += "Content-Type: " + this->_request.getContentType() + "\r\n";
+	this->_response += "Content-Length: " + this->_request.getContentLength() + "\r\n";
+	this->_response += "Connection: close\r\n";
+}
+
+void Response::bodyToString(void)
+{
+	this->_response += "\r\n";
+	std::string body = openUri(this->_request.getUri());
+	this->_response.insert(this->_response.end(), body.begin(), body.end());
+}
+
 void Response::generateResponse(void)
 {
-	this->generateStatusLine();
-	this->generateHeaders();
-	this->generateBody();
+	std::string method = this->_request.getMethod();
+	std::cout << "method: " << method << std::endl;
+
+	if ( method == "GET" )
+	{
+		std::cerr << "Hello from GET" << std::endl;
+	}
+	else if ( method == "POST" )
+	{}
+	else if ( method == "DELETE" )
+	{}
 }
 
 void Response::generateStatusLine(void)
 {
-	this->_response += "HTTP/1.1 ";
-	this->_response += this->_status;
-	this->_response += "\r\n";
-}
-
-void Response::generateHeaders(void)
-{
-	this->_response += "Server: WebServ/1.0.0 (Unix)\r\n";
-	this->_response += "Date: " + getDate() + "\r\n";
-	this->_response += "Content-Type: " + this->_req.getContentType() + "\r\n";
-	this->_response += "Content-Length: " + this->_req.getContentLength() + "\r\n";
-	this->_response += "Connection: close\r\n";
-}
-
-void Response::generateBody(void)
-{
-	this->_response += "\r\n";
-	std::string body = openUri(this->_req.getUri());
-	this->_response.insert(this->_response.end(), body.begin(), body.end());
+	
 }
 
 void	Response::clear(void)
@@ -113,5 +126,5 @@ void	Response::clear(void)
 void Response::setData(Server server, Request req)
 {
 	this->_server = server;
-	this->_req = req;
+	this->_request = req;
 }

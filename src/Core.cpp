@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/09 19:50:50 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/10 19:49:23 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,27 +129,7 @@ void Core::start( void )
 				if ( this->_requests[currentFd].state == DONE or this->_requests[currentFd].state == ERR )
 				{
 					std::cerr << "Send response" << std::endl;
-
-					std::string s;
-
-					if (this->_requests[currentFd].state == DONE)
-					{
-						s = "HTTP/1.1 200 OK\r\n"
-							"Content-Type: text/plain\r\n"
-							"Content-Length: 12\r\n"
-							"\r\n"
-							"Hello world!";
-					}
-					else if (this->_requests[currentFd].state == ERR)
-					{
-						s = "HTTP/1.1 400 Bad request\r\n"
-							"Content-Type: text/plain\r\n"
-							"Content-Length: 11\r\n"
-							"\r\n"
-							"Bad request";
-					}
-					send(currentFd, s.c_str(), s.length(), 0);
-					this->_requests[currentFd].state = SENT;
+					this->writeResponse( currentFd );
 				}
 				else if ( this->_requests[currentFd].state == SENT )
 				{
@@ -233,7 +213,29 @@ void Core::readRequest( int clientFd )
 		// INFO: The client has closed the connection
 		request.state = SENT;
 	}
-	request.mainRequest( buffer, readBytes );
+	request.mainParsingRequest( buffer, readBytes );
 
+	return ;
+}
+
+void Core::writeResponse( int clientFd )
+{
+	Response &response = this->_responses[clientFd];
+	Request &request = this->_requests[clientFd];
+
+	if ( request.state == DONE ) response = Response( request );
+	else
+	{
+		response = Response( request );
+	}
+
+	response.generateResponse();
+	response.toString();
+	std::string responseStr = response.getResponse();
+	ssize_t sentBytes = send( clientFd, responseStr.c_str(), responseStr.length(), 0 );
+	if ( sentBytes == -1 )
+		throw std::runtime_error( strerror( errno ) );
+
+	request.state = SENT;
 	return ;
 }

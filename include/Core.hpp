@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 14:30:16 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/09 19:22:26 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/10 14:50:05 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ class Core
 		std::set< int > _listenFds;
 		std::vector< struct pollfd > _pollFds;
 		std::map< int, Request > _requests;
+		std::map< int, Response > _responses;
 
 	public:
 		Core( std::vector< Server > const & servers );
@@ -36,4 +37,5 @@ class Core
 		void	acceptNewConnection( int serverFd );
 		void	bindServerSockets( void );
 		void	readRequest( int clientFd );
+		void	writeResponse( int clientFd );
 };
