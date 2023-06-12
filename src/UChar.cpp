@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   UChar.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/18 13:08:48 by moseddik          #+#    #+#             */
-/*   Updated: 2023/05/23 18:33:32 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/12 13:57:15 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,11 +107,6 @@ void UChar::push_front(std::string &str)
 	return ;
 }
 
-std::vector<unsigned char> UChar::getUChar(void)
-{
-	return this->_buffer;
-}
-
 unsigned char &UChar::operator[](int index)
 {
 	return this->_buffer[index];
@@ -183,6 +178,15 @@ bool UChar::endWith(std::string &str) const
 		if (this->_buffer[this->_size - str.size() + i] != str[i])
 			return false;
 	return true;
+}
+
+void UChar::setBuffer( std::string & str )
+{
+	this->_buffer.clear();
+	for (size_t i = 0; i < str.size(); i++)
+		this->_buffer.push_back(str[i]);
+	this->_size = str.size();
+	return ;
 }
 
 std::ostream &operator<<(std::ostream &o, const UChar &rhs)
