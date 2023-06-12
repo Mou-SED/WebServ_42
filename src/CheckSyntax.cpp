@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CheckSyntax.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/07 16:08:17 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/12 11:31:39 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ void	autoindex_check(std::string const & value)
 	std::string s(value);
 	if (s.back() != ';')
 		throw std::runtime_error("Error: syntax error : missing `;`");
-	s = trim(s.substr(strspn(" \t", s.c_str()) + 1)); 
+	s = trim(s.substr(strspn(" \t", s.c_str())));
 	s.erase(s.size() - 1, 1);
 	if (s != "on" and s != "off")
 		throw std::runtime_error("Error: syntax error : missing `on` or `off`");
