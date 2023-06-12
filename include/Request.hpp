@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/10 16:59:13 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/11 11:24:35 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ class Request
 		UChar _body;
 		UChar _chunkedBody;
 		bool _chunkedTurn = false;
+		Server * _server;
 
 	public:
 		State state;
@@ -53,6 +54,7 @@ class Request
 		bool parsingBody(char *buffer);
 
 		void	setUri(std::string uri);
+		void	setServer(Server * server);
 
 
 		std::map<std::string, std::string> getHeaders(void) const;
@@ -63,4 +65,5 @@ class Request
 		std::string getContentLength(void);
 		void clear(void);
 		uint16_t getStatus( void ) const;
+		Server * getServer( void ) const;
 };

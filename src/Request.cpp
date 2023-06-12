@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/10 17:41:03 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/11 11:24:58 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ Request::Request(void)
 	this->isChunked = false;
 	this->contentLength = 0;
 	this->status = OK;
+	this->_server = nullptr;
 
 	return;
 }
@@ -58,6 +59,11 @@ uint16_t Request::getStatus(void) const
 	return this->status;
 }
 
+Server * Request::getServer(void) const
+{
+	return this->_server;
+}
+
 std::string Request::getContentType()
 {
 	std::map<std::string, std::string> m;
@@ -88,16 +94,7 @@ std::string Request::getContentType()
 
 std::string Request::getContentLength(void)
 {
-	std::ifstream File(this->_uri, std::ios::binary);
-	if (!File)
-	{
-		throw std::runtime_error("File not found");
-	}
-
-	// Read the video file data
-	std::ostringstream oss;
-	oss << File.rdbuf();
-	return std::to_string((oss.str().size()));
+	return std::to_string(this->_body.size());
 }
 
 bool findIf( std::map<std::string, std::string> &headers, std::vector<std::string> const v )
@@ -258,6 +255,11 @@ bool Request::parsingBody(char *buffer)
 void Request::setUri(std::string uri)
 {
 	this->_uri = uri;
+}
+
+void Request::setServer(Server *server)
+{
+	this->_server = server;
 }
 
 bool Request::mainParsingRequest(char *buffer, int size)
