@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 14:30:16 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/10 14:50:05 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/12 15:44:14 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,5 +37,7 @@ class Core
 		void	acceptNewConnection( int serverFd );
 		void	bindServerSockets( void );
 		void	readRequest( int clientFd );
-		void	writeResponse( int clientFd );
+		void	sentResponse( int clientFd );
+
+		Server * getServer( int fd, const std::string & host );
 };

@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/09 15:46:00 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/12 16:52:24 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <map>
 #include <sstream>
 #include <string>

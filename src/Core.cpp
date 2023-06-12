@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/10 19:49:23 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/12 20:58:01 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,6 @@ void Core::start( void )
 				if ( this->_listenFds.count( currentFd ) == 1 )
 				{
 					this->acceptNewConnection( currentFd );
-					std::cerr << "Accept new connection" << std::endl;
 				}
 				else
 				{
@@ -129,15 +128,16 @@ void Core::start( void )
 				if ( this->_requests[currentFd].state == DONE or this->_requests[currentFd].state == ERR )
 				{
 					std::cerr << "Send response" << std::endl;
-					this->writeResponse( currentFd );
+					this->sentResponse( currentFd );
 				}
-				else if ( this->_requests[currentFd].state == SENT )
-				{
-					this->removePollFd( currentFd );
-					this->_serversByFd.erase( currentFd );
-					this->_requests.erase( currentFd );
-					close( currentFd );
-				}
+			}
+			if ( this->_requests[currentFd].state == SENT )
+			{
+				this->removePollFd( currentFd );
+				this->_serversByFd.erase( currentFd );
+				this->_requests.erase( currentFd );
+				this->_responses.erase( currentFd );
+				close( currentFd );
 			}
 		}
 	}
@@ -152,8 +152,11 @@ void Core::acceptNewConnection( int serverFd )
 	if ( newFd == -1 )
 		throw std::runtime_error( strerror( errno ) );
 
+	std::cerr << "Accept new connection on fd " << newFd << std::endl;
+
 	fcntl( serverFd, F_SETFL, O_NONBLOCK );
-	setsockopt( serverFd, SOL_SOCKET, SO_REUSEADDR, NULL, 0 );
+	int yes = 1;
+	setsockopt( serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int) );
 
 	this->addPollFd( newFd );
 
@@ -173,7 +176,9 @@ void Core::bindServerSockets(void)
 		Server * server = it->second.front();
 
 		fcntl( fd, F_SETFL, O_NONBLOCK );
-		setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, NULL, 0 );
+
+		const int yes = 1;
+		setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int) );
 
 		const struct addrinfo hint = (struct addrinfo){
 			.ai_family = AF_INET,
@@ -197,45 +202,75 @@ void Core::bindServerSockets(void)
 	}
 }
 
+Server * Core::getServer( int fd, const std::string & host )
+{
+	const std::vector<Server *> & servers = this->_serversByFd[fd];
+
+	for (size_t i = 0; i < servers.size(); i++)
+	{
+		if (servers[i]->getServerName() == host)
+			return servers[i];
+	}
+
+	return servers[0];
+}
+
 void Core::readRequest( int clientFd )
 {
 	char buffer[BUFSIZ + 1];
 
 	ssize_t readBytes = recv( clientFd, buffer, BUFSIZ, 0 );
 	if ( readBytes == -1  )
+	{
+		std::cerr << "Ana sbab fhadchi" << std::endl;
 		throw std::runtime_error( strerror( errno ) );
+	}
 
 	buffer[readBytes] = '\0';
 
 	Request &request = this->_requests[clientFd];
 	if ( readBytes == 0 )
 	{
+		std::cerr << "I'm Here" << std::endl;
 		// INFO: The client has closed the connection
 		request.state = SENT;
 	}
 	request.mainParsingRequest( buffer, readBytes );
+	if ( request.state == DONE )
+		request.setServer( getServer( clientFd, request.getHeaders()["host"] ) );
 
 	return ;
 }
 
-void Core::writeResponse( int clientFd )
+void Core::sentResponse( int clientFd )
 {
-	Response &response = this->_responses[clientFd];
-	Request &request = this->_requests[clientFd];
-
-	if ( request.state == DONE ) response = Response( request );
-	else
+	if ( this->_responses.count(clientFd) == 0 )
 	{
-		response = Response( request );
+		Response & response = this->_responses[clientFd];
+		Request & request = this->_requests[clientFd];
+		response.setRequest( request );
+		response.generateResponse();
+		response.toString();
 	}
 
-	response.generateResponse();
-	response.toString();
-	std::string responseStr = response.getResponse();
-	ssize_t sentBytes = send( clientFd, responseStr.c_str(), responseStr.length(), 0 );
+	std::string responseStr = this->_responses[clientFd].getResponse();
+
+
+	ssize_t sentBytes = send(
+		clientFd,
+		responseStr.c_str() + this->_responses[clientFd].bytesSent,
+		std::min((size_t)BUFSIZ, responseStr.length() - this->_responses[clientFd].bytesSent),
+		0
+	);
 	if ( sentBytes == -1 )
 		throw std::runtime_error( strerror( errno ) );
 
-	request.state = SENT;
+	std::cerr << "bytesSent = " << this->_responses[clientFd].bytesSent << std::endl;
+	std::cerr << "responseStr.length() = " << responseStr.length() << std::endl;
+	std::cerr << "------------------------------------------" << std::endl;
+
+	this->_responses[clientFd].bytesSent += sentBytes;
+	if ( this->_responses[clientFd].bytesSent == responseStr.length() )
+		this->_requests[clientFd].state = SENT;
 	return ;
 }
