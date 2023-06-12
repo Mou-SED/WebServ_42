@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/09 16:04:48 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/12 13:44:09 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,16 +27,20 @@ enum Tokens
 	TOKEN_INITIALIZED,
 };
 
+typedef std::map<std::string, std::vector<std::string> > Directives;
 struct Server
 {
 	std::map<std::string, std::vector<std::string > > directives;
-	std::vector< std::pair<std::string, std::map<std::string, std::vector<std::string > > > > context;
+	std::vector< std::pair<std::string, Directives > > context;
 
 	size_t getPort( void ) const;
 	std::string getServerName( void ) const;
 	std::string getHost( void ) const;
 	std::string getRoot( void ) const;
 	std::string getContext(std::string &url) const;
+	std::pair<std::string, Directives > *	matchLocation( std::string & uri );
+	std::string getAutoindex( void ) const;
+	bool isLocationExist( void ) const;
 };
 
 void check_value(std::string const & key, std::string const & value);

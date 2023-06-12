@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/09 16:04:48 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/12 13:43:59 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -154,6 +154,38 @@ std::string Server::getContext(std::string &url) const
 			return this->context[i].first;
 	}
 	return "";
+}
+
+std::pair<std::string, Directives > * Server::matchLocation( std::string & uri )
+{
+	std::pair<std::string, Directives > * bestMatch = nullptr;
+	size_t bestMatchLength = 0;
+
+	for (size_t i = 0; i < this->context.size(); i++)
+	{
+		const std::string & locationUri = this->context[i].first;
+
+		if ( beginsWith( uri, locationUri ) and locationUri.size() > bestMatchLength )
+		{
+			bestMatch = &this->context[i];
+			bestMatchLength = locationUri.size();
+		}
+	}
+
+	return bestMatch;
+}
+
+std::string Server::getAutoindex(void) const
+{
+	if (this->context.size() > 0)
+		return this->context[0].second.find("autoindex")->second[0];
+	else
+		return this->directives.find("autoindex")->second[0];
+}
+
+bool Server::isLocationExist(void) const
+{
+	return (this->context.size() > 0);
 }
 
 std::vector<Server> Tokenization(std::ifstream &file)
