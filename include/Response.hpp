@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/21 16:20:23 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/10 19:44:52 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/12 16:14:03 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@
 class Response
 {
 	private:
-		Server _server;
+		UChar _body;
 		Request _request;
 		uint16_t _status;
 		std::string _response;
@@ -30,7 +30,6 @@ class Response
 		size_t bytesSent;
 		Response( void );
 		Response( uint16_t status );
-		Response( Request const & req );
 		~Response( void );
 
 		std::string	getResponse( void ) const;
@@ -40,14 +39,16 @@ class Response
 		void		bodyToString( void );
 
 		void		generateResponse( void );
-		void		generateStatusLine( void );
-		void		generateHeaders( void );
-		void		generateBody( void );
+		UChar		openUri( std::string path );
 
 		void		generateChunkedBody( void );
 		std::string	getDate( void );
 		std::string	getContentType(std::string ext);
 		void 		clear( void );
 
-		void		setData(Server server, Request req );
+		void 		setRequest( Request const & req );
+
+		static		std::string getStatusMessage( uint16_t status );
+
+		void GET( void );
 };

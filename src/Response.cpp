@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/10 19:51:21 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/12 20:12:12 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,6 @@ Response::Response( uint16_t status )
 {
 	bytesSent = 0;
 	this->_status = status;
-	return ;
-}
-
-Response::Response( Request const & req )
-{
-	bytesSent = 0;
-	this->_request = req;
-	this->_status = req.getStatus();
 	return ;
 }
 
@@ -58,11 +50,11 @@ std::string Response::getDate(void)
 	return str;
 }
 
-std::string openUri(std::string path)
+UChar Response::openUri( std::string path )
 {
 	std::ifstream ifs(path.c_str());
 
-    return std::string(
+    return UChar(
         std::istreambuf_iterator<char>(ifs),
         std::istreambuf_iterator<char>()
     );
@@ -78,7 +70,7 @@ void Response::toString(void)
 void Response::statusLineToStirng(void)
 {
 	this->_response += "HTTP/1.1 ";
-	this->_response += std::to_string(this->_status);
+	this->_response += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
 	this->_response += "\r\n";
 }
 
@@ -87,25 +79,26 @@ void Response::headersToString(void)
 	this->_response += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_response += "Date: " + getDate() + "\r\n";
 	this->_response += "Content-Type: " + this->_request.getContentType() + "\r\n";
-	this->_response += "Content-Length: " + this->_request.getContentLength() + "\r\n";
+	this->_response += "Content-Length: " + std::to_string(this->_body.size()) + "\r\n";
 	this->_response += "Connection: close\r\n";
+	// TODO : Add headers for cookies and redirection.
 }
 
 void Response::bodyToString(void)
 {
 	this->_response += "\r\n";
-	std::string body = openUri(this->_request.getUri());
+
+	std::vector<unsigned char> & body = this->_body.getBuffer();
 	this->_response.insert(this->_response.end(), body.begin(), body.end());
 }
 
 void Response::generateResponse(void)
 {
 	std::string method = this->_request.getMethod();
-	std::cout << "method: " << method << std::endl;
 
 	if ( method == "GET" )
 	{
-		std::cerr << "Hello from GET" << std::endl;
+		GET();
 	}
 	else if ( method == "POST" )
 	{}
@@ -113,9 +106,32 @@ void Response::generateResponse(void)
 	{}
 }
 
-void Response::generateStatusLine(void)
+void Response::GET( void )
 {
-	
+	std::string uri = this->_request.getUri();
+	std::string root = this->_request.getServer()->getRoot();
+
+	std::pair<std::string, Directives > * location = this->_request.getServer()->matchLocation(uri);
+	if ( location != nullptr and location->second.count("root") != 0 ) root = location->second["root"][0];
+
+	std::string path = this->_request.getServer()->getRoot() + uri;
+
+	if ( isDirectory(path) )
+	{
+		std::cerr << "Is Directory" << std::endl;
+		// if ( this->_request.getServer()->isLocationExist() )
+		// {
+		// 	std::cerr << "Is Directory" << std::endl;
+		// }
+		// else this->_status = NOT_FOUND;
+	}
+	else if ( isFile(path) )
+	{
+		if ( access(path.c_str(), R_OK) == -1 )
+			this->_status = FORBIDDEN;
+		else
+			this->_body = openUri(path);
+	}
 }
 
 void	Response::clear(void)
@@ -123,8 +139,39 @@ void	Response::clear(void)
 	this->_response.clear();
 }
 
-void Response::setData(Server server, Request req)
+void Response::setRequest(Request const &req)
 {
-	this->_server = server;
 	this->_request = req;
+	this->_status = req.getStatus();
+}
+
+std::string Response::getStatusMessage(uint16_t status)
+{
+	switch(status)
+	{
+		case OK:
+			return "OK";
+		case CREATED:
+			return "Created";
+		case NO_CONTENT:
+			return "No Content";
+		case MOVED_PERMANENTLY:
+			return "Moved Permanently";
+		case MOVED_TEMPORARILY:
+			return "Moved Temporarily";
+		case BAD_REQUEST:
+			return "Bad Request";
+		case FORBIDDEN:
+			return "Forbidden";
+		case NOT_FOUND:
+			return "Not Found";
+		case INTERNAL_SERVER_ERROR:
+			return "Internal Server Error";
+		case NOT_IMPLEMENTED:
+			return "Not Implemented";
+		case BAD_GATEWAY:
+			return "Bad Gateway";
+		default:
+			throw std::runtime_error("Unknown status code");
+	}
 }
