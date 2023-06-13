@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/12 20:58:01 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/13 15:29:34 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,14 +120,25 @@ void Core::start( void )
 				}
 				else
 				{
-					this->readRequest( currentFd );
+					try
+					{
+						this->readRequest( currentFd );
+					}
+					catch(const std::exception& e)
+					{
+						this->removePollFd( currentFd );
+						this->_serversByFd.erase( currentFd );
+						this->_requests.erase( currentFd );
+						this->_responses.erase( currentFd );
+						close( currentFd );
+					}
 				}
 			}
 			else if ( this->_pollFds[i].revents & POLLOUT )
 			{
 				if ( this->_requests[currentFd].state == DONE or this->_requests[currentFd].state == ERR )
 				{
-					std::cerr << "Send response" << std::endl;
+					// std::cerr << "Send response" << std::endl;
 					this->sentResponse( currentFd );
 				}
 			}
@@ -237,7 +248,10 @@ void Core::readRequest( int clientFd )
 	}
 	request.mainParsingRequest( buffer, readBytes );
 	if ( request.state == DONE )
+	{
+		std::cerr<< "Hello Server" << std::endl;
 		request.setServer( getServer( clientFd, request.getHeaders()["host"] ) );
+	}
 
 	return ;
 }
@@ -264,10 +278,10 @@ void Core::sentResponse( int clientFd )
 	);
 	if ( sentBytes == -1 )
 		throw std::runtime_error( strerror( errno ) );
-
-	std::cerr << "bytesSent = " << this->_responses[clientFd].bytesSent << std::endl;
-	std::cerr << "responseStr.length() = " << responseStr.length() << std::endl;
-	std::cerr << "------------------------------------------" << std::endl;
+	//TODO : Remove this
+	// std::cerr << "bytesSent = " << this->_responses[clientFd].bytesSent << std::endl;
+	// std::cerr << "responseStr.length() = " << responseStr.length() << std::endl;
+	// std::cerr << "------------------------------------------" << std::endl;
 
 	this->_responses[clientFd].bytesSent += sentBytes;
 	if ( this->_responses[clientFd].bytesSent == responseStr.length() )

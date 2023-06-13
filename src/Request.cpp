@@ -3,14 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/11 11:24:58 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/13 15:21:33 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Request.hpp"
+
+void	checkHeaders(std::map<std::string, std::string> &headers)
+{
+	if (headers["host"].empty())
+		throw std::runtime_error("Host header is missing");
+}
+
 
 Request::Request(void)
 {
@@ -108,6 +115,13 @@ bool findIf( std::map<std::string, std::string> &headers, std::vector<std::strin
 	return false;
 }
 
+bool checkHeaders(std::map<std::string, std::string> headers, std::string key)
+{
+	if (headers.count(key) != 0 and headers[key].empty())
+		return false;
+	return true;
+}
+
 bool Request::parsingHeaders(std::vector<std::string> &tokens)
 {
 	size_t i = 0;
@@ -118,16 +132,17 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 
 		header = make_pair(
 			tokens[i].substr(0, tokens[i].find(":")),
-			tokens[i].substr(tokens[i].find(":") + 1)
+			tokens[i].substr(tokens[i].find(":") + 1, tokens[i].find("\n") - tokens[i].find(":") - 1)
 		);
 		std::transform(header.first.begin(), header.first.end(), header.first.begin(), ::tolower);
 
-		if ( header.first.empty() or header.second.empty() or not findIf(this->_headers, {"content-length", "transfer-encoding"}) or not findIf(this->_headers, {header.first})
-			or (not this->_headers["content-length"].empty() and not this->_headers["transfer-encoding"].empty()))
+		if ( header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first}) or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding"))
 		{ // TODO : check headers can be duplicated in nginx.
+		
+			std::cerr << header.first << " " << header.second << std::endl;
 			this->status = BAD_REQUEST;
 			this->state = ERR;
-
+			std::cerr << "ERROR: Bad request\n";// TODO : remove
 			return false;
 		}
 		if ((tokens[i] == "\n" or tokens[i] == "\r\n") and (not this->_headers["content-length"].empty() or not this->_headers["transfer-encoding"].empty()) ) // TODO : check if the header is valid
@@ -135,14 +150,13 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			i++;
 			if ( this->_headers["transfer-encoding"] == "chunked" ) this->isChunked = true;
 			if (not this->_headers["content-length"].empty()) this->contentLength = std::stoi(this->_headers["content-length"]);
-
 			this->state = BODY;
-
 			break;
 		}
 		else if ( tokens[i] == "\n" or tokens[i] == "\r\n" )
 		{
 			this->state = DONE;
+			checkHeaders(this->_headers);
 			break;
 		}
 		this->_headers[header.first] = trim(header.second, " \r\n");
@@ -268,6 +282,7 @@ bool Request::mainParsingRequest(char *buffer, int size)
 
 	if ( this->state == BODY )
 	{
+		checkHeaders(this->_headers);
 		return parsingBody(buffer);
 	}
 	else if ( line.find("\n") == std::string::npos )

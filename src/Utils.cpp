@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/12 13:30:04 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/13 15:46:20 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,4 +60,38 @@ bool	isFile( const std::string & path )
 bool	beginsWith( const std::string & str, const std::string & prefix )
 {
 	return str.substr(0, prefix.size()) == prefix;
+}
+
+void	print_servers(Server &servers, int ind)
+{
+	std::cout << "Sever block" << std::endl;
+	for (int i = 0; i < ind; i++)
+		std::cout << "---";
+	std::cout << "Directives:" << std::endl;
+	std::cout << servers.directives.size() << std::endl;
+	for (const auto& [key, values] : servers.directives)
+	{
+		std::cout << "- " << key << ": ";
+		for (const auto& value : values)
+		{
+			std::cout << value << " ";
+		}
+		std::cout << std::endl;
+	}
+
+	std::cout << "Contexts:" << std::endl;
+	for (const auto& [name, context] : servers.context)
+	{
+		std::cout << "- " << name << ":" << std::endl;
+		for (const auto& [key, values] : context)
+		{
+			std::cout << "  - " << key << ": ";
+			for (const auto& value : values)
+			{
+				std::cout << value << " ";
+			}
+			std::cout << std::endl;
+		}
+	}
+
 }
