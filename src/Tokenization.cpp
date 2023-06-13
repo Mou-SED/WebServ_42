@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/12 13:43:59 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/13 10:21:33 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,11 +56,13 @@ void parc_location(std::ifstream &file, std::string &value, Server &servers)
 	{
 		std::string key;
 		std::string value;
-		std::stringstream ss(line);
+		std::stringstream ss(trim(line));
+
 		ss >> key;
-		value = get_value(line, key.size());
-		value = value.substr(0, value.find_first_of(";"));
+		ss >> value;
 		token = get_tokens(key);
+		value = trim(line.substr(line.find(value)));
+		value = value.substr(0, value.find_first_of(";"));
 		if (token == TOKEN_RIGHT_BRACKET)
 			break;
 		else if (token == TOKEN_NAME)
@@ -82,9 +84,10 @@ Server parc_server(std::ifstream &file, std::string &line)
 	{
 		std::string key;
 		std::string value;
-		std::stringstream ss(line);
+		std::stringstream ss(trim(line));
 		ss >> key;
-		value = get_value(line, key.size());
+		ss >> value;
+		value = trim(line.substr(line.find(value)));
 		value = value.substr(0, value.find_first_of(";"));
 		token = get_tokens(key);
 		if (token == TOKEN_RIGHT_BRACKET)
