@@ -6,11 +6,13 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/13 15:29:34 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/13 16:43:04 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Core.hpp"
+
+unsigned int BUFSIZE = 4294967295;
 
 std::pair<uint32_t, uint16_t> Core::getHostAndPort( std::string const & host, std::string const & port )
 {
@@ -273,7 +275,7 @@ void Core::sentResponse( int clientFd )
 	ssize_t sentBytes = send(
 		clientFd,
 		responseStr.c_str() + this->_responses[clientFd].bytesSent,
-		std::min((size_t)BUFSIZ, responseStr.length() - this->_responses[clientFd].bytesSent),
+		std::min((size_t)BUFSIZE, responseStr.length() - this->_responses[clientFd].bytesSent),
 		0
 	);
 	if ( sentBytes == -1 )
