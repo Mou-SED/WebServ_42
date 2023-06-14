@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/13 16:43:04 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/14 18:27:52 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -267,26 +267,28 @@ void Core::sentResponse( int clientFd )
 		response.setRequest( request );
 		response.generateResponse();
 		response.toString();
+		send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
+		response.ifs.open( response.getPath().c_str() );
+		this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
+		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
+		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
 	}
-
-	std::string responseStr = this->_responses[clientFd].getResponse();
-
 
 	ssize_t sentBytes = send(
 		clientFd,
-		responseStr.c_str() + this->_responses[clientFd].bytesSent,
-		std::min((size_t)BUFSIZE, responseStr.length() - this->_responses[clientFd].bytesSent),
+		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
+		std::min((off_t)BUFSIZE, this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent),
 		0
 	);
 	if ( sentBytes == -1 )
-		throw std::runtime_error( strerror( errno ) );
+		throw std::runtime_error( strerror( errno ) + std::string( "++++++ " ) );
 	//TODO : Remove this
-	// std::cerr << "bytesSent = " << this->_responses[clientFd].bytesSent << std::endl;
+	std::cerr << "bytesSent = " << this->_responses[clientFd].bytesSent << std::endl;
 	// std::cerr << "responseStr.length() = " << responseStr.length() << std::endl;
-	// std::cerr << "------------------------------------------" << std::endl;
+	std::cerr << "------------------------------------------" << std::endl;
 
 	this->_responses[clientFd].bytesSent += sentBytes;
-	if ( this->_responses[clientFd].bytesSent == responseStr.length() )
+	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
 		this->_requests[clientFd].state = SENT;
 	return ;
 }

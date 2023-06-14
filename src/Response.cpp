@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/12 20:12:12 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/14 18:28:05 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,18 +15,21 @@
 Response::Response( void )
 {
 	bytesSent = 0;
+	_bodySize = 0;
 	return ;
 }
 
 Response::Response( uint16_t status )
 {
 	bytesSent = 0;
+	_bodySize = 0;
 	this->_status = status;
 	return ;
 }
 
 Response::~Response( void )
 {
+	delete [] this->_buffer;
 	return ;
 }
 
@@ -35,7 +38,7 @@ std::string Response::getResponse(void) const
 	return this->_response;
 }
 
-std::string Response::getDate(void)
+std::string Response::getDate(void) const
 {
 	time_t rawTime;
 	struct tm * timeInfo;
@@ -62,25 +65,14 @@ UChar Response::openUri( std::string path )
 
 void Response::toString(void)
 {
-	this->statusLineToStirng();
-	this->headersToString();
-	this->bodyToString();
-}
-
-void Response::statusLineToStirng(void)
-{
-	this->_response += "HTTP/1.1 ";
-	this->_response += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-	this->_response += "\r\n";
-}
-
-void Response::headersToString(void)
-{
-	this->_response += "Server: WebServ/1.0.0 (Unix)\r\n";
-	this->_response += "Date: " + getDate() + "\r\n";
-	this->_response += "Content-Type: " + this->_request.getContentType() + "\r\n";
-	this->_response += "Content-Length: " + std::to_string(this->_body.size()) + "\r\n";
-	this->_response += "Connection: close\r\n";
+	this->_headers += "HTTP/1.1 ";
+	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
+	this->_headers += "\r\n";
+	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
+	this->_headers += "Date: " + getDate() + "\r\n";
+	this->_headers += "Content-Type: " + this->_request.getContentType() + "\r\n";
+	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
+	this->_headers += "Connection: close\r\n\r\n";
 	// TODO : Add headers for cookies and redirection.
 }
 
@@ -130,11 +122,29 @@ void Response::GET( void )
 		if ( access(path.c_str(), R_OK) == -1 )
 			this->_status = FORBIDDEN;
 		else
-			this->_body = openUri(path);
+		{
+			this->setPath(path);
+			this->setBodySize(path);
+		}
 	}
 }
 
-void	Response::clear(void)
+std::string Response::getHeaders(void) const
+{
+	return this->_headers;
+}
+
+std::string Response::getPath(void) const
+{
+	return this->_path;
+}
+
+off_t Response::getBodySize(void) const
+{
+	return this->_bodySize;
+}
+
+void Response::clear(void)
 {
 	this->_response.clear();
 }
@@ -143,6 +153,18 @@ void Response::setRequest(Request const &req)
 {
 	this->_request = req;
 	this->_status = req.getStatus();
+}
+
+void Response::setBodySize(std::string &path)
+{
+	struct stat st;
+	stat(path.c_str(), &st);
+	this->_bodySize = st.st_size;
+}
+
+void Response::setPath(std::string &path)
+{
+	this->_path = path;
 }
 
 std::string Response::getStatusMessage(uint16_t status)

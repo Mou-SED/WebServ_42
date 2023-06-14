@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/21 16:20:23 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/12 16:14:03 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/14 18:25:30 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,9 +24,14 @@ class Response
 		Request _request;
 		uint16_t _status;
 		std::string _response;
+		std::string _headers;
 		std::string contentLength;
+		off_t _bodySize;
+		std::string _path;
 
 	public:
+		char *_buffer;
+		std::ifstream ifs;
 		size_t bytesSent;
 		Response( void );
 		Response( uint16_t status );
@@ -34,21 +39,20 @@ class Response
 
 		std::string	getResponse( void ) const;
 		void		toString( void );
-		void		statusLineToStirng( void );
-		void		headersToString( void );
 		void		bodyToString( void );
-
 		void		generateResponse( void );
 		UChar		openUri( std::string path );
 
-		void		generateChunkedBody( void );
-		std::string	getDate( void );
-		std::string	getContentType(std::string ext);
+		std::string	getDate( void ) const;
+		std::string getHeaders( void ) const;
+		std::string getPath( void ) const;
+		off_t		getBodySize( void ) const;
+		static		std::string getStatusMessage( uint16_t status );
 		void 		clear( void );
 
 		void 		setRequest( Request const & req );
-
-		static		std::string getStatusMessage( uint16_t status );
+		void 		setBodySize( std::string &path );
+		void 		setPath( std::string &path );
 
 		void GET( void );
 };
