@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/21 16:20:23 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/15 19:39:44 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 19:58:16 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,8 @@ class Response
 		~Response( void );
 
 		std::string	getResponse( void ) const;
-		void		toString( void );
+		void		toStringGet( void );
+		void		toStringDelete( void );
 		void		toString( std::string const &type);
 		void		bodyToString( void );
 		void		generateResponse( void );
@@ -63,4 +64,5 @@ class Response
 		void 		setPath( std::string &path );
 
 		void GET( void );
+		void DELETE( void );
 };

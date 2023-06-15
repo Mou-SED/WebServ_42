@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 14:30:16 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/15 11:22:15 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/15 19:48:43 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ class Core
 
 		void	sentResponse( int clientFd );
 		void	sentGetResponse( int clientFd );
+		void	sentDeleteResponse( int clientFd );
 
 		Server * getServer( int fd, const std::string & host );
 };

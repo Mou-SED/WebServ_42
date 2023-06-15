@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/15 20:05:49 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 20:21:22 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ void Response::toString( std::string const  &type)
 	// TODO : Add headers for cookies and redirection.
 }
 
-void Response::toString( void )
+void Response::toStringGet( void )
 {
 	this->_headers += "HTTP/1.1 ";
 	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
@@ -77,6 +77,16 @@ void Response::toString( void )
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
 	this->_headers += "Connection: close\r\n\r\n";
 	// TODO : Add headers for cookies and redirection.
+}
+
+void Response::toStringDelete( void )
+{
+	this->_headers += "HTTP/1.1 ";
+	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
+	this->_headers += "\r\n";
+	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
+	this->_headers += "Date: " + getDate() + "\r\n";
+	this->_headers += "Connection: close\r\n\r\n";
 }
 
 void Response::bodyToString(void)
@@ -91,14 +101,10 @@ void Response::generateResponse(void)
 {
 	std::string method = this->_request.getMethod();
 
-	if ( method == "GET" )
-	{
-		GET();
-	}
+	if ( method == "GET" ) GET();
 	else if ( method == "POST" )
 	{}
-	else if ( method == "DELETE" )
-	{}
+	else if ( method == "DELETE" ) DELETE();
 }
 
 bool	checkDirFile(std::string &path, std::string const &file)
@@ -234,7 +240,39 @@ void Response::GET( void )
 			this->toString("text/html");
 		}
 		else
-			this->toString();
+			this->toStringGet();
+}
+
+void Response::DELETE( void )
+{
+	std::string uri = this->_request.getUri();
+	std::string root = this->_request.getServer()->getRoot();
+
+	std::pair<std::string, Directives > * location = this->_request.getServer()->matchLocation(uri);
+	if ( location != nullptr and location->second.count("root") != 0 ) root = location->second["root"][0];
+
+	std::string path = this->_request.getServer()->getRoot() + uri;
+	this->setPath(path);
+	if ( isDirectory(this->_path) or access(this->_path.c_str(), F_OK) == -1 )
+		this->_status = FORBIDDEN;
+	else if ( access(this->_path.c_str(), W_OK) == -1 )
+		this->_status = FORBIDDEN;
+	else
+	{
+		if ( not remove(this->_path.c_str()) )
+			this->_status = INTERNAL_SERVER_ERROR;
+		this->_status = NO_CONTENT;
+	}
+	this->_buffer = strdup("");
+	if ( this->_status >= BAD_REQUEST )
+	{
+		Error error(this->_status, this->_error_pages);
+		this->setBodySize(error.getErrorBody().length());
+		this->_buffer = strdup(error.getErrorBody().c_str());
+		this->toString("text/html");
+	}
+	else
+		this->toStringDelete();
 }
 
 std::string Response::getHeaders(void) const

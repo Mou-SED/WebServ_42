@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/15 19:40:06 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 20:22:49 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -282,6 +282,32 @@ void Core::sentGetResponse(int clientFd)
 	return ;
 }
 
+void Core::sentDeleteResponse( int clientFd )
+{
+	Response & response = this->_responses[clientFd];
+	Request & request = this->_requests[clientFd];
+	response.setRequest( request );
+	response.generateResponse();
+	send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
+	if ( response.getStatus() < BAD_REQUEST)
+	{
+		response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
+		this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
+		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
+		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
+	}
+	ssize_t sentBytes = send(
+		clientFd,
+		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
+		std::min((off_t)BUFSIZE, this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent),
+		0
+	);
+
+	this->_responses[clientFd].bytesSent += sentBytes;
+	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
+		this->_requests[clientFd].state = SENT;
+}
+
 void Core::sentResponse( int clientFd )
 {
 	if ( this->_requests[clientFd].state == ERR )
@@ -291,7 +317,9 @@ void Core::sentResponse( int clientFd )
 		this->_requests[clientFd].state = SENT;
 		return ;
 	}
-	if( this->_requests[clientFd].getMethod() == "GET" )
+	if ( this->_requests[clientFd].getMethod() == "GET" )
 		this->sentGetResponse( clientFd );
+	else if ( this->_requests[clientFd].getMethod() == "DELETE" )
+		this->sentDeleteResponse( clientFd );
 }
 
