@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/13 15:21:33 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 16:46:29 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,11 +138,10 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 
 		if ( header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first}) or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding"))
 		{ // TODO : check headers can be duplicated in nginx.
-		
+
 			std::cerr << header.first << " " << header.second << std::endl;
 			this->status = BAD_REQUEST;
 			this->state = ERR;
-			std::cerr << "ERROR: Bad request\n";// TODO : remove
 			return false;
 		}
 		if ((tokens[i] == "\n" or tokens[i] == "\r\n") and (not this->_headers["content-length"].empty() or not this->_headers["transfer-encoding"].empty()) ) // TODO : check if the header is valid
@@ -196,7 +195,10 @@ bool Request::parsingStartLine(std::vector<std::string> &tokens)
 
 	if (requestLine.size() != 3 or not checkMethod(requestLine[0])) // TODO : check method should return another error (METHOD_NOT_IMPLEMENTED)
 	{
-		this->status = BAD_REQUEST;
+		if ( requestLine[0] == "OPTIONS" or requestLine[0] == "HEAD" or requestLine[0] == "PATCH" )
+			this->status = NOT_IMPLEMENTED;
+		else
+			this->status = BAD_REQUEST;
 		this->state = ERR;
 
 		return false;
