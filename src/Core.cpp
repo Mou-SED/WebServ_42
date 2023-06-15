@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/14 18:27:52 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 10:35:11 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -122,18 +122,7 @@ void Core::start( void )
 				}
 				else
 				{
-					try
-					{
-						this->readRequest( currentFd );
-					}
-					catch(const std::exception& e)
-					{
-						this->removePollFd( currentFd );
-						this->_serversByFd.erase( currentFd );
-						this->_requests.erase( currentFd );
-						this->_responses.erase( currentFd );
-						close( currentFd );
-					}
+					this->readRequest( currentFd );
 				}
 			}
 			else if ( this->_pollFds[i].revents & POLLOUT )
@@ -236,7 +225,7 @@ void Core::readRequest( int clientFd )
 	if ( readBytes == -1  )
 	{
 		std::cerr << "Ana sbab fhadchi" << std::endl;
-		throw std::runtime_error( strerror( errno ) );
+		return ;
 	}
 
 	buffer[readBytes] = '\0';
@@ -272,6 +261,7 @@ void Core::sentResponse( int clientFd )
 		this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
 		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
 		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
+		std::cerr << "response.getBodySize() = " << response.getBodySize() << std::endl;
 	}
 
 	ssize_t sentBytes = send(
@@ -280,8 +270,6 @@ void Core::sentResponse( int clientFd )
 		std::min((off_t)BUFSIZE, this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent),
 		0
 	);
-	if ( sentBytes == -1 )
-		throw std::runtime_error( strerror( errno ) + std::string( "++++++ " ) );
 	//TODO : Remove this
 	std::cerr << "bytesSent = " << this->_responses[clientFd].bytesSent << std::endl;
 	// std::cerr << "responseStr.length() = " << responseStr.length() << std::endl;
