@@ -1,21 +1,75 @@
 #include "Error.hpp"
 
-Error::Error()
+std::string getStatusMessage( uint16_t status )
 {
-	this->error = OK;
+	switch(status)
+	{
+		case OK:
+			return "OK";
+		case CREATED:
+			return "Created";
+		case VERSION_NOT_SUPPORTED:
+			return "HTTP Version Not Supported";
+		case NO_CONTENT:
+			return "No Content";
+		case MOVED_PERMANENTLY:
+			return "Moved Permanently";
+		case MOVED_TEMPORARILY:
+			return "Moved Temporarily";
+		case BAD_REQUEST:
+			return "Bad Request";
+		case FORBIDDEN:
+			return "Forbidden";
+		case NOT_FOUND:
+			return "Not Found";
+		case INTERNAL_SERVER_ERROR:
+			return "Internal Server Error";
+		case NOT_IMPLEMENTED:
+			return "Not Implemented";
+		case BAD_GATEWAY:
+			return "Bad Gateway";
+		default:
+			throw std::runtime_error("Unknown status code");
+	}
+}
+
+
+Error::Error( uint16_t error )
+{
+	this->_error = error;
+	this->_errorPage = "";
+	setErrorMessage(getStatusMessage(error));
 	return;
 }
 
-Error::Error(uint16_t error)
+std::pair<bool, std::string>	errorPageFound(uint16_t error, std::vector<std::pair<std::set<int>, std::string> > error_page)
 {
-	this->error = error;
-	return;
+	for (size_t i = 0; i < error_page.size(); i++)
+	{
+		if (error_page[i].first.find(error) != error_page[i].first.end())
+			return std::make_pair(true, error_page[i].second);
+	}
+	return std::make_pair(false, "");
+}
+
+Error::Error(uint16_t error, std::vector<std::pair<std::set<int>, std::string> > error_page)
+{
+	this->_error = error;
+	std::pair<bool, std::string> error_page_found = errorPageFound(error, error_page);
+	if (error_page_found.first and access(error_page_found.second.c_str(), R_OK) != -1)
+	{
+		std::ifstream file(error_page_found.second.c_str());
+		this->_errorBody = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+	}
+	else
+		setErrorMessage(getStatusMessage(error));
+	return ;
 }
 
 Error::Error(uint16_t error, std::string error_page)
 {
-	this->error = error;
-	this->error_page = error_page;
+	this->_error = error;
+	this->_errorPage = error_page;
 	return;
 }
 
@@ -30,31 +84,20 @@ Error::~Error()
 	return;
 }
 
-std::string const Error::errorMessage(std::string msg)
+void 	Error::setErrorMessage( std::string const & msg )
 {
-	std::string const s = "<html>\n<head><title>"+msg+"</title></head>\n<body>\n<center><h1>"+msg+"</h1></center>\n<hr><center>WebServ/0.1</center>\n</body>\n</html>\n";
-	std::string header  = "HTTP/1.1 "+std::to_string(this->error)+" "+msg+"\r\n"+"Content-Type: text/html\r\n"+"Content-Length: "+std::to_string(s.length())+"\r\n\r\n";
-	return header + s;
+	std::string s = "<html>\n<head><title>" + msg + "</title></head>\n<body>\n<center><h1>" + msg + "</h1></center>\n<hr><center>WebServ/0.1</center>\n</body>\n</html>\n";
+	this->_errorBody = s;
+	std::string header  = "HTTP/1.1 " + std::to_string(this->_error) + " " + msg + "\r\n" + "Content-Type: text/html\r\n" + "Content-Length: " + std::to_string(s.length()) + "\r\n\r\n";
+	this->_errorMessage = header + s;
 }
 
-std::string	genetatErrorPage( void )
+std::string Error::getErrorMessage(void) const
 {
-	// if (error >= 400 and error <= 500)
-	// {
-	// 	// clientError();
-	// 	error_message = "Client Error";
-	// 	error_code = "4xx";
-	// }
-	// else if (error >= 500 and error < 506)
-	// {
-	// 	// serverError();
-	// 	error_message = "Server Error";
-	// 	error_code = "5xx";
-	// }
-	// else
-	// {
-	// 	error_message = "Unknown";
-	// 	error_code = "xxx";
-	// }
-	return "";
+	return this->_errorMessage;
+}
+
+std::string Error::getErrorBody(void) const
+{
+	return  _errorBody;
 }

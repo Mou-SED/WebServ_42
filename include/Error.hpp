@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Error.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/22 13:03:04 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/09 14:31:17 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 17:10:09 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,17 +55,19 @@ enum ERRORS {
 class Error
 {
 	private:
-		uint16_t error;
-		std::string error_page;
-		std::string error_message;
-		std::string error_code;
+		uint16_t 	_error;
+		std::string _errorPage;
+		std::string _errorMessage;
+		std::string _errorBody;
+		// off_t		_errorBodySize;
 
 	public:
-		Error();
-		Error(uint16_t error);
+		Error( uint16_t error );
+		Error(uint16_t error, std::vector<std::pair<std::set<int>, std::string> > error_page);
 		Error(uint16_t error, std::string error_page);
 		Error(const Error &src);
 		~Error();
-		std::string const errorMessage(std::string msg);
-		// std::string	genetatErrorPage( void );
+		void setErrorMessage(std::string const & msg);
+		std::string getErrorMessage(void) const;
+		std::string getErrorBody(void) const;
 };
