@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/15 10:35:11 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 17:08:40 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,6 @@ void Core::start( void )
 			{
 				if ( this->_requests[currentFd].state == DONE or this->_requests[currentFd].state == ERR )
 				{
-					// std::cerr << "Send response" << std::endl;
 					this->sentResponse( currentFd );
 				}
 			}
@@ -247,21 +246,23 @@ void Core::readRequest( int clientFd )
 	return ;
 }
 
-void Core::sentResponse( int clientFd )
+void Core::sentGetResponse(int clientFd)
 {
 	if ( this->_responses.count(clientFd) == 0 )
 	{
 		Response & response = this->_responses[clientFd];
 		Request & request = this->_requests[clientFd];
 		response.setRequest( request );
+		response.setErrorPages( request.getServer()->directives["error_page"] );
 		response.generateResponse();
-		response.toString();
 		send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
-		response.ifs.open( response.getPath().c_str() );
-		this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
-		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
-		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
-		std::cerr << "response.getBodySize() = " << response.getBodySize() << std::endl;
+		if ( response.getStatus() < BAD_REQUEST)
+		{
+			response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
+			this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
+			memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
+			this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
+		}
 	}
 
 	ssize_t sentBytes = send(
@@ -270,13 +271,24 @@ void Core::sentResponse( int clientFd )
 		std::min((off_t)BUFSIZE, this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent),
 		0
 	);
-	//TODO : Remove this
-	std::cerr << "bytesSent = " << this->_responses[clientFd].bytesSent << std::endl;
-	// std::cerr << "responseStr.length() = " << responseStr.length() << std::endl;
-	std::cerr << "------------------------------------------" << std::endl;
 
 	this->_responses[clientFd].bytesSent += sentBytes;
 	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
 		this->_requests[clientFd].state = SENT;
+
 	return ;
 }
+
+void Core::sentResponse( int clientFd )
+{
+	if ( this->_requests[clientFd].state == ERR )
+	{
+		Error error( this->_requests[clientFd].status );
+		send( clientFd, error.getErrorMessage().c_str(), error.getErrorMessage().length(), 0 );
+		this->_requests[clientFd].state = SENT;
+		return ;
+	}
+	if( this->_requests[clientFd].getMethod() == "GET" )
+		this->sentGetResponse( clientFd );
+}
+
