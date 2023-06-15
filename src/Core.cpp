@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/15 17:08:40 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/15 19:40:06 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,7 +256,7 @@ void Core::sentGetResponse(int clientFd)
 		response.setErrorPages( request.getServer()->directives["error_page"] );
 		response.generateResponse();
 		send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
-		if ( response.getStatus() < BAD_REQUEST)
+		if ( response.getStatus() < BAD_REQUEST and response._isDir == false)
 		{
 			response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
 			this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
@@ -274,7 +274,10 @@ void Core::sentGetResponse(int clientFd)
 
 	this->_responses[clientFd].bytesSent += sentBytes;
 	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
+	{
 		this->_requests[clientFd].state = SENT;
+		std::cerr << "Sent" << std::endl;
+	}
 
 	return ;
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/15 17:48:10 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/15 20:05:49 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,6 +101,81 @@ void Response::generateResponse(void)
 	{}
 }
 
+bool	checkDirFile(std::string &path, std::string const &file)
+{
+	DIR *dir;
+	struct dirent *ent;
+	bool ret = false;
+
+	if ((dir = opendir(path.c_str())) != NULL)
+	{
+		while ((ent = readdir(dir)) != NULL)
+		{
+			std::cerr << ent->d_name << std::endl;
+			if ( ent->d_name == file )
+			{
+				ret = true;
+				break ;
+			}
+		}
+		closedir(dir);
+	}
+	return ret;
+}
+
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <string>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <ctime>
+
+std::string const generateDirectory(std::string const &path)
+{
+    std::stringstream ss;
+    ss << "<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>Directory Listing</title>\n\t\t<style>\n\t\t\ttable {\n\t\t\t\tborder-collapse: collapse;\n\t\t\t\tmargin: auto;\n\t\t\t\twidth: 100%;\n\t\t\t}\n\t\t\tth, td {\n\t\t\t\tpadding: 8px;\n\t\t\t\ttext-align: left;\n\t\t\t\tborder-bottom: 1px solid #ddd;\n\t\t\t}\n\t\t\tth {\n\t\t\t\tbackground-color: #f2f2f2;\n\t\t\t}\n\t\t</style>\n\t</head>\n\t<body>\n\t\t<h1>Directory Listing</h1>\n\t\t<hr>\n\t\t<table>\n\t\t\t<tr><th>Type</th><th>Name</th><th>Size (bytes)</th><th>Creation Date</th><th>Extension</th></tr>\n";
+
+    DIR* dir = opendir(path.c_str());
+    if (dir != NULL) {
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != NULL) {
+            if (entry->d_name[0] == '.') {
+                continue;
+            }
+            struct stat fileStat;
+            std::string entryPath = path + "/" + entry->d_name;
+            if (stat(entryPath.c_str(), &fileStat) < 0) {
+                std::cerr << "Error: Failed to get file stats for " << entryPath << std::endl;
+                continue;
+            }
+            ss << "\t\t\t<tr>\n";
+            if (S_ISDIR(fileStat.st_mode)) {
+                ss << "\t\t\t\t<td>Directory</td>\n";
+                ss << "\t\t\t\t<td><a href=\"" << entry->d_name << "/\">" << entry->d_name << "/</a></td>\n";
+                ss << "\t\t\t\t<td></td>\n";
+                ss << "\t\t\t\t<td>" << std::put_time(std::gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
+                ss << "\t\t\t\t<td></td>\n";
+            } else if (S_ISREG(fileStat.st_mode)) {
+                ss << "\t\t\t\t<td>File</td>\n";
+                ss << "\t\t\t\t<td><a href=\"" << entry->d_name << "\">" << entry->d_name << "</a></td>\n";
+                ss << "\t\t\t\t<td>" << fileStat.st_size << "</td>\n";
+                ss << "\t\t\t\t<td>" << std::put_time(std::gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
+                ss << "\t\t\t\t<td>" << std::string(entry->d_name).substr(std::string(entry->d_name).find_last_of(".") + 1) << "</td>\n";
+            }
+            ss << "\t\t\t</tr>\n";
+        }
+        closedir(dir);
+    } else {
+        std::cerr << "Error: Failed to open directory " << path << std::endl;
+    }
+
+    ss << "\t\t</table>\n";
+    ss << "\t</body>\n";
+    ss << "</html>\n";
+    return ss.str();
+}
+
 void Response::GET( void )
 {
 	std::string uri = this->_request.getUri();
@@ -120,11 +195,23 @@ void Response::GET( void )
 	if ( isDirectory(path) )
 	{
 		std::cerr << "Is Directory" << std::endl;
-		// if ( this->_request.getServer()->isLocationExist() )
-		// {
-		// 	std::cerr << "Is Directory" << std::endl;
-		// }
-		// else this->_status = NOT_FOUND;
+		if ((location->second.find("autoindex") != location->second.end() and location->second["autoindex"][0] == "on" and  checkDirFile(path, "index.html")) or (location->second.find("index") != location->second.end() and checkDirFile(path, location->second["index"][0])))
+		{
+			std::cerr << "Autoindex on" << std::endl;
+			path += "/index.html";
+			this->setPath(path);
+			this->setBodySize(path);
+		}
+		else
+		{
+			std::string const _dir = generateDirectory(path);
+			std::cerr << "Dir :\n" << _dir << std::endl;
+			this->setBodySize(_dir.length());
+			this->_buffer = strdup(_dir.c_str());
+			this->_isDir = true;
+		}
+		toString("text/html");
+		return ;
 	}
 	else
 	{
