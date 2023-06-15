@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/13 10:21:33 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/15 17:29:22 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ Tokens get_tokens(std::string const &value)
 		return (TOKEN_RIGHT_BRACKET);
 	else if (value == ";")
 		return (TOKEN_SEMICOLON);
-	else if (tokens.find(value) != tokens.end()) // TODO : check if it's a good idea to use name and value as key
+	else if (tokens.find(value) != tokens.end())
 		return (TOKEN_NAME);
 	else if (value == "value")
 		return (TOKEN_VALUE);
@@ -112,6 +112,18 @@ void is_in_vector(std::vector<std::string> &v, std::string const &value)
 			v[i] = "0.0.0.0:" + v[i];
 }
 
+void	addRootErrorPage(std::string const &root, std::vector<std::string> &error_pages)
+{
+	for (size_t i = 0; i < error_pages.size(); i++)
+	{
+		std::string error_page = error_pages[i].substr(error_pages[i].find_last_of(" ") + 1);
+		error_pages[i] = error_pages[i].substr(0, error_pages[i].find_last_of(" ") + 1);
+		if (error_page[0] != '/')
+			error_page = "/" + error_page;
+		error_pages[i] += root + error_page;
+	}
+}
+
 void setDefaultDirectives(std::vector<Server> &servers)
 {
 	for (size_t i = 0; i < servers.size(); i++)
@@ -125,6 +137,11 @@ void setDefaultDirectives(std::vector<Server> &servers)
 			servers[i].directives["server_name"].push_back(servers[i].directives["listen"][0].substr(0, servers[i].directives["listen"][0].find_first_of(":")));
 		if (servers[i].directives.find("error_page") == servers[i].directives.end())
 			servers[i].directives["error_page"].push_back("404 /404.html");
+	}
+
+	for (size_t i = 0; i < servers.size(); i++)
+	{
+		addRootErrorPage(servers[i].directives["root"][0], servers[i].directives["error_page"]);
 	}
 }
 
