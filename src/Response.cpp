@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/15 20:21:22 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/16 20:51:18 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,6 +73,7 @@ void Response::toStringGet( void )
 	this->_headers += "\r\n";
 	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_headers += "Date: " + getDate() + "\r\n";
+	this->_headers += "Accept-Ranges: bytes\r\n";
 	this->_headers += "Content-Type: " + this->_request.getContentType() + "\r\n";
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
 	this->_headers += "Connection: close\r\n\r\n";
@@ -128,14 +129,6 @@ bool	checkDirFile(std::string &path, std::string const &file)
 	}
 	return ret;
 }
-
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <string>
-#include <dirent.h>
-#include <sys/stat.h>
-#include <ctime>
 
 std::string const generateDirectory(std::string const &path)
 {
