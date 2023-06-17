@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CheckSyntax.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/12 11:31:39 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/17 17:10:07 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,7 +134,5 @@ void	redirectionCheck(std::string const & value)
 	if (v.size() != 2)
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : `return` must be followed by a code and a url");
 	if (v[0] != "301" and v[0] != "302" and v[0] != "303" and v[0] != "307" and v[0] != "308")
-		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : `return` must be followed by a code and a url");
-	if (v[1].front() != '/' and v[1].front() != '.')
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : `return` must be followed by a code and a url");
 }

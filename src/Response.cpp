@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/16 20:51:18 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/17 13:58:45 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ Response::Response( uint16_t status )
 
 Response::~Response( void )
 {
-	delete [] this->_buffer;
 	return ;
 }
 
@@ -60,6 +59,12 @@ void Response::toString( std::string const  &type)
 	this->_headers += "\r\n";
 	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_headers += "Date: " + getDate() + "\r\n";
+	if (this->_Location != "")
+	{
+		this->_headers += "Location: " + this->_Location + "\r\n";
+		this->_headers += "Connection: close\r\n\r\n";
+		return ;
+	}
 	this->_headers += "Content-Type: " + type + "\r\n";
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
 	this->_headers += "Connection: close\r\n\r\n";
@@ -73,6 +78,12 @@ void Response::toStringGet( void )
 	this->_headers += "\r\n";
 	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_headers += "Date: " + getDate() + "\r\n";
+	if (this->_Location != "")
+	{
+		this->_headers += "Location: " + this->_Location + "\r\n";
+		this->_headers += "Connection: close\r\n\r\n";
+		return ;
+	}
 	this->_headers += "Accept-Ranges: bytes\r\n";
 	this->_headers += "Content-Type: " + this->_request.getContentType() + "\r\n";
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
@@ -108,26 +119,35 @@ void Response::generateResponse(void)
 	else if ( method == "DELETE" ) DELETE();
 }
 
-bool	checkDirFile(std::string &path, std::string const &file)
+bool	checkDirFile(std::string &path, std::string const &index)
 {
-	DIR *dir;
-	struct dirent *ent;
-	bool ret = false;
-
-	if ((dir = opendir(path.c_str())) != NULL)
+	std::vector<std::string> indexes = split(const_cast<std::string &>(index), ' ', false);
+	for (size_t i = 0; i < indexes.size(); i++)
 	{
-		while ((ent = readdir(dir)) != NULL)
+		std::cerr << "index : " << indexes[i] << std::endl;
+		DIR *dir;
+		struct dirent *ent;
+		bool ret = false;
+
+		if ((dir = opendir(path.c_str())) != NULL)
 		{
-			std::cerr << ent->d_name << std::endl;
-			if ( ent->d_name == file )
+			while ((ent = readdir(dir)) != NULL)
 			{
-				ret = true;
-				break ;
+				std::cerr << ent->d_name << std::endl;
+				if ( ent->d_name == indexes[i] )
+				{
+					std::cerr << "index found" << std::endl;
+					path += indexes[i];
+					ret = true;
+					break ;
+				}
 			}
+			closedir(dir);
 		}
-		closedir(dir);
+		if (ret == true)
+			return ret;
 	}
-	return ret;
+	return false;
 }
 
 std::string const generateDirectory(std::string const &path)
@@ -175,6 +195,30 @@ std::string const generateDirectory(std::string const &path)
     return ss.str();
 }
 
+bool	Response::redirection(std::string &path,std::string &uri, std::pair<std::string, Directives > * location)
+{
+	std::cerr << location->second["return"][0] << std::endl;
+	std::vector<std::string> ret = split(location->second["return"][0], ' ', false);
+	this->_status = atoi(ret[0].c_str());
+	if (ret.size() != 2)
+	{
+		this->_status = INTERNAL_SERVER_ERROR;
+		return true;
+	}
+	else if (ret[1][0] != '/' and ret[1][0] != '.')
+	{
+		std::cerr << "URL" << std::endl;
+		this->_Location = ret[1];
+		return true;
+	}
+	else
+	{
+		path = this->_request.getServer()->getRoot() + ret[1] + uri;
+		std::cerr << "PATH: " << path << std::endl;
+		return false;
+	}
+}
+
 void Response::GET( void )
 {
 	std::string uri = this->_request.getUri();
@@ -184,27 +228,28 @@ void Response::GET( void )
 	if ( location != nullptr and location->second.count("root") != 0 ) root = location->second["root"][0];
 
 	std::string path = this->_request.getServer()->getRoot() + uri;
-
+	std::cerr<< "uri: " << uri << std::endl;
+	std::cerr<< "path: " << path << std::endl;
 	if ( not this->_request.getServer()->isLocationExist() )
 	{
 		this->_status = NOT_FOUND;
 		goto GENERATE;
 	}
-
+	if (location->second.find("return") != location->second.end() and redirection(path, uri, location))
+		goto GENERATE;
 	if ( isDirectory(path) )
 	{
 		std::cerr << "Is Directory" << std::endl;
 		if ((location->second.find("autoindex") != location->second.end() and location->second["autoindex"][0] == "on" and  checkDirFile(path, "index.html")) or (location->second.find("index") != location->second.end() and checkDirFile(path, location->second["index"][0])))
 		{
 			std::cerr << "Autoindex on" << std::endl;
-			path += "/index.html";
 			this->setPath(path);
 			this->setBodySize(path);
 		}
 		else
 		{
+			this->_request.getServer()->setRootDirectory(path);
 			std::string const _dir = generateDirectory(path);
-			std::cerr << "Dir :\n" << _dir << std::endl;
 			this->setBodySize(_dir.length());
 			this->_buffer = strdup(_dir.c_str());
 			this->_isDir = true;
@@ -225,7 +270,7 @@ void Response::GET( void )
 		}
 	}
 	GENERATE:
-		if ( this->_status >= BAD_REQUEST )
+		if ( this->_status >= BAD_REQUEST)
 		{
 			Error error(this->_status, this->_error_pages);
 			this->setBodySize(error.getErrorBody().length());

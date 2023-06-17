@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/15 20:22:49 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/16 22:30:27 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -256,6 +256,11 @@ void Core::sentGetResponse(int clientFd)
 		response.setErrorPages( request.getServer()->directives["error_page"] );
 		response.generateResponse();
 		send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
+		if (response._Location != "")
+		{
+			this->_requests[clientFd].state = SENT;
+			return ;
+		}
 		if ( response.getStatus() < BAD_REQUEST and response._isDir == false)
 		{
 			response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
@@ -268,7 +273,7 @@ void Core::sentGetResponse(int clientFd)
 	ssize_t sentBytes = send(
 		clientFd,
 		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
-		std::min((off_t)BUFSIZE, this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent),
+		this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent,
 		0
 	);
 

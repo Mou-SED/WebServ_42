@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/21 16:20:23 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/15 19:58:16 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/17 13:59:09 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ class Response
 
 	public:
 		char *_buffer;
+		std::string _Location = "";
 		bool _isCGI = false;
 		bool _isDir = false;
 		std::vector<std::pair<std::set<int> , std::string> > _error_pages;
@@ -48,6 +49,7 @@ class Response
 		void		toString( std::string const &type);
 		void		bodyToString( void );
 		void		generateResponse( void );
+		bool		redirection(std::string &path,std::string &uri, std::pair<std::string, Directives > * location);
 
 		std::string	getDate( void ) const;
 		std::string getHeaders( void ) const;
