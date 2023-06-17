@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/17 13:58:45 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/17 21:28:08 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,14 +99,6 @@ void Response::toStringDelete( void )
 	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_headers += "Date: " + getDate() + "\r\n";
 	this->_headers += "Connection: close\r\n\r\n";
-}
-
-void Response::bodyToString(void)
-{
-	this->_response += "\r\n";
-
-	std::vector<unsigned char> & body = this->_body.getBuffer();
-	this->_response.insert(this->_response.end(), body.begin(), body.end());
 }
 
 void Response::generateResponse(void)
