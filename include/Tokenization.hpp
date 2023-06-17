@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.hpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:37:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/12 13:44:09 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/17 17:18:17 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ struct Server
 	std::pair<std::string, Directives > *	matchLocation( std::string & uri );
 	std::string getAutoindex( void ) const;
 	bool isLocationExist( void ) const;
+	void setRootDirectory(std::string root);
 };
 
 void check_value(std::string const & key, std::string const & value);

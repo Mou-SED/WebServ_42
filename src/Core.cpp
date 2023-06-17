@@ -6,13 +6,13 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/16 22:30:27 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/17 21:23:43 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Core.hpp"
 
-unsigned int BUFSIZE = 4294967295;
+unsigned int BUFSIZE = 1048576;
 
 std::pair<uint32_t, uint16_t> Core::getHostAndPort( std::string const & host, std::string const & port )
 {
@@ -218,17 +218,16 @@ Server * Core::getServer( int fd, const std::string & host )
 
 void Core::readRequest( int clientFd )
 {
-	char buffer[BUFSIZ + 1];
+	char buffer[BUFSIZE];
 
-	ssize_t readBytes = recv( clientFd, buffer, BUFSIZ, 0 );
+	ssize_t readBytes = recv( clientFd, buffer, BUFSIZE, 0 );
 	if ( readBytes == -1  )
 	{
 		std::cerr << "Ana sbab fhadchi" << std::endl;
 		return ;
 	}
-
 	buffer[readBytes] = '\0';
-
+	// std::cerr << "Read " << readBytes << " body " << buffer << std::endl;
 	Request &request = this->_requests[clientFd];
 	if ( readBytes == 0 )
 	{
@@ -236,7 +235,9 @@ void Core::readRequest( int clientFd )
 		// INFO: The client has closed the connection
 		request.state = SENT;
 	}
-	request.mainParsingRequest( buffer, readBytes );
+	std::stringstream ss;
+	ss.write(buffer, readBytes);
+	request.mainParsingRequest( ss );
 	if ( request.state == DONE )
 	{
 		std::cerr<< "Hello Server" << std::endl;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/15 16:46:29 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/17 21:20:40 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,9 +45,9 @@ std::map<std::string, std::string> Request::getHeaders(void) const
 	return this->_headers;
 }
 
-UChar &Request::getBody(void) const
+std::string Request::getBody(void) const
 {
-	return const_cast<UChar &>(this->_body);
+	return (this->_body.str());
 }
 
 void Request::clear(void)
@@ -101,7 +101,28 @@ std::string Request::getContentType()
 
 std::string Request::getContentLength(void)
 {
-	return std::to_string(this->_body.size());
+	return std::to_string(this->_body.str().size());
+}
+
+size_t Request::getBodySize(void)
+{
+	return this->_body.str().size();
+}
+
+Request & Request::operator=(Request const & rhs)
+{
+	this->_request << rhs._request.str();
+	this->_method = rhs._method;
+	this->_uri = rhs._uri;
+	this->_headers = rhs._headers;
+	this->_body << rhs._body.str();
+	this->state = rhs.state;
+	this->isChunked = rhs.isChunked;
+	this->contentLength = rhs.contentLength;
+	this->status = rhs.status;
+	this->_server = rhs._server;
+
+	return *this;
 }
 
 bool findIf( std::map<std::string, std::string> &headers, std::vector<std::string> const v )
@@ -148,7 +169,7 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 		{
 			i++;
 			if ( this->_headers["transfer-encoding"] == "chunked" ) this->isChunked = true;
-			if (not this->_headers["content-length"].empty()) this->contentLength = std::stoi(this->_headers["content-length"]);
+			if (not this->_headers["content-length"].empty()) this->contentLength = std::stoll(this->_headers["content-length"]);
 			this->state = BODY;
 			break;
 		}
@@ -158,12 +179,16 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			checkHeaders(this->_headers);
 			break;
 		}
+		std::cerr << header.first << " " << header.second << std::endl;
 		this->_headers[header.first] = trim(header.second, " \r\n");
 	}
 
 	this->_request.clear();
 	for (size_t j = i; j < tokens.size(); j++)
-		this->_request.append(tokens[j]);
+	{
+		// if (i != 0 and tokens[i].find("Content") != std::string::npos)
+			this->_request << tokens[j];
+	}
 
 	return true;
 }
@@ -177,7 +202,7 @@ void remove_end(std::string &str, std::string to_remove)
 
 bool checkMethod(std::string &line)
 {
-	std::vector<std::string> list = {"GET", "POST", "DELETE"};
+	std::vector<std::string> list = {"GET", "POST", "DELETE", "PUT"};
 
 	for (size_t i = 0; i < list.size(); i++)
 	{
@@ -215,7 +240,8 @@ bool Request::parsingStartLine(std::vector<std::string> &tokens)
 	this->_uri = requestLine[1];
 	this->state = HEADERS;
 	tokens.erase(tokens.begin());
-
+	std::cerr << "method : " << this->_method << std::endl;
+	std::cerr << "uri : " << this->_uri << std::endl;
 	return true;
 }
 
@@ -230,25 +256,25 @@ bool Request::parsing(std::vector<std::string> &tokens)
 		if ( not parsingHeaders(tokens) ) return false;
 	}
 	if ( state == BODY )
-		return mainParsingRequest(const_cast<char *>(this->_request.toString().c_str()), this->_request.size());
+		return mainParsingRequest(this->_request);
 
 	return true;
 }
 
-bool Request::readLine(std::string &line)
+bool Request::readLine(std::stringstream &line)
 {
-	if ( not this->_request.empty() )
+	if ( not this->_request.str().empty() )
 	{
-		this->_request += line;
-		line = this->_request.toString();
+		this->_request << line.str();
+		line << this->_request.str();
 	}
 
-	std::vector<std::string> tokens = split(line, '\n', true);
+	std::vector<std::string> tokens = split((line.str()), '\n', true);
 
 	return parsing(tokens);
 }
 
-bool Request::parsingBody(char *buffer)
+bool Request::parsingBody(std::stringstream &buffer)
 {
 	if ( this->isChunked )
 	{
@@ -256,10 +282,19 @@ bool Request::parsingBody(char *buffer)
 	}
 	else
 	{
-		_body += buffer;
-		if (_body.size() == this->contentLength) this->state = DONE;
-		else if (_body.size() > this->contentLength)
+		_body << buffer.str();
+		std::cerr << "before : " << _body.str().size() << std::endl;
+		std::cerr << "contentLength : " << this->contentLength << std::endl;
+		// std::cerr << "len = " << strlen(buffer) << std::endl;
+		if (_body.str().size() == this->contentLength)
 		{
+			this->state = DONE;
+			// std::cerr << "body : " << _body.str() << std::endl;
+		}
+		else if (_body.str().size() > this->contentLength)
+		{
+			std::cerr << "body : " << _body.str().size() << std::endl;
+			std::cerr << "contentLength : " << this->contentLength << std::endl;
 			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;
@@ -267,6 +302,7 @@ bool Request::parsingBody(char *buffer)
 	}
 	return true;
 }
+
 
 void Request::setUri(std::string uri)
 {
@@ -278,33 +314,32 @@ void Request::setServer(Server *server)
 	this->_server = server;
 }
 
-bool Request::mainParsingRequest(char *buffer, int size)
+bool Request::mainParsingRequest(std::stringstream &ss)
 {
-	std::string line(buffer, size);
 
 	if ( this->state == BODY )
 	{
 		checkHeaders(this->_headers);
-		return parsingBody(buffer);
+		return parsingBody(ss);
 	}
-	else if ( line.find("\n") == std::string::npos )
+	else if ( ss.str().find("\n") == std::string::npos )
 	{
-		this->_request += line;
+		this->_request << ss.str();
 		return false;
 	}
 	else
-		return ( readLine(line) );
+		return ( readLine(ss) );
 }
 
-bool Request::parsingChunked(char *buffer)
+bool Request::parsingChunked(std::stringstream &buffer)
 {
 	if (not _chunkedTurn)
 	{
 		try
 		{
-			if ( std::string(buffer).find("\n") == std::string::npos ) return false;
+			if (buffer.str().find("\n") == std::string::npos ) return false;
 
-			this->contentLength = std::stoi(std::string(buffer), 0, 16);
+			this->contentLength = std::stoi(buffer.str(), 0, 16);
 			if (this->contentLength == 0)
 			{
 				this->state = DONE;
@@ -322,19 +357,19 @@ bool Request::parsingChunked(char *buffer)
 	}
 	else
 	{
-		_chunkedBody += buffer;
-		if (_chunkedBody.size() == this->contentLength)
+		_chunkedBody << buffer.str();
+		if (_chunkedBody.str().size() == this->contentLength)
 		{
 			_chunkedBody.clear();
 			_chunkedTurn = false;
 		}
-		if (_chunkedBody.size() > this->contentLength)
+		if (_chunkedBody.str().size() > this->contentLength)
 		{
 			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;
 		}
-		this->_body += _chunkedBody;
+		this->_body << _chunkedBody.str();
 	}
 
 	return true;

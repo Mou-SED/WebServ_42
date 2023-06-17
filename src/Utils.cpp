@@ -6,12 +6,34 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/13 15:46:20 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/17 20:13:35 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Utils.hpp"
+#include "../include/Utils.hpp"
 #include <sys/stat.h>
+
+std::vector<std::string> split(std::string const &str, char delim, bool keepDelim)
+{
+	std::vector<std::string> result;
+	size_t start = 0;
+
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		if (str[i] == delim)
+		{
+			if ( keepDelim )
+				result.push_back(str.substr(start, i - start + 1));
+			else
+				result.push_back(str.substr(start, i - start));
+			start = i + 1;
+		}
+	}
+	if (start < str.size())
+		result.push_back(str.substr(start));
+
+	return result;
+}
 
 std::vector<std::string> split(std::string &str, char delim, bool keepDelim)
 {
