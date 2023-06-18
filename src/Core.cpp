@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/17 21:23:43 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 09:45:46 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,7 +226,6 @@ void Core::readRequest( int clientFd )
 		std::cerr << "Ana sbab fhadchi" << std::endl;
 		return ;
 	}
-	buffer[readBytes] = '\0';
 	// std::cerr << "Read " << readBytes << " body " << buffer << std::endl;
 	Request &request = this->_requests[clientFd];
 	if ( readBytes == 0 )

@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/24 13:56:57 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/17 14:53:52 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ int  Check::num_line;
 std::set<std::string> Check::methods;
 std::string Check::key;
 std::string Check::value;
-std::vector<std::string> type_value = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex", "return"};
+std::vector<std::string> type_value = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex", "return", "cgi_pass", };
 std::stack<char> Check::brackets;
 
 bool Check::ipAddress(std::string s)
@@ -86,6 +86,12 @@ bool Check::isDomain( std::string const & s )
 	return false;
 }
 
+void	cgi_pass_check(std::string const & value)
+{
+	if (value == "" or value == ";")
+		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `cgi_pass` value");
+}
+
 void	check_value(std::string const &key, std::string const & value)
 {
 	if ( (key == "server" and value != "{") )
@@ -104,6 +110,8 @@ void	check_value(std::string const &key, std::string const & value)
 		root_check(value);
 	else if (key == "index")
 		index_check(value);
+	else if (key == "cgi_pass")
+		cgi_pass_check(value);
 	else if (key == "client_body_temp_path")
 	{
 		if (value == "" or value == ";")
