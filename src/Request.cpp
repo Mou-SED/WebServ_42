@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/17 21:20:40 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 14:49:22 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,17 +125,6 @@ Request & Request::operator=(Request const & rhs)
 	return *this;
 }
 
-bool findIf( std::map<std::string, std::string> &headers, std::vector<std::string> const v )
-{
-	for (size_t i = 0; i < v.size(); i++)
-	{
-		if (headers.find(v[i]) == headers.end())
-			return true;
-	}
-
-	return false;
-}
-
 bool checkHeaders(std::map<std::string, std::string> headers, std::string key)
 {
 	if (headers.count(key) != 0 and headers[key].empty())
@@ -159,8 +148,6 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 
 		if ( header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first}) or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding"))
 		{ // TODO : check headers can be duplicated in nginx.
-
-			std::cerr << header.first << " " << header.second << std::endl;
 			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;
@@ -179,7 +166,6 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			checkHeaders(this->_headers);
 			break;
 		}
-		std::cerr << header.first << " " << header.second << std::endl;
 		this->_headers[header.first] = trim(header.second, " \r\n");
 	}
 
@@ -240,8 +226,7 @@ bool Request::parsingStartLine(std::vector<std::string> &tokens)
 	this->_uri = requestLine[1];
 	this->state = HEADERS;
 	tokens.erase(tokens.begin());
-	std::cerr << "method : " << this->_method << std::endl;
-	std::cerr << "uri : " << this->_uri << std::endl;
+
 	return true;
 }
 
@@ -283,18 +268,12 @@ bool Request::parsingBody(std::stringstream &buffer)
 	else
 	{
 		_body << buffer.str();
-		std::cerr << "before : " << _body.str().size() << std::endl;
-		std::cerr << "contentLength : " << this->contentLength << std::endl;
-		// std::cerr << "len = " << strlen(buffer) << std::endl;
 		if (_body.str().size() == this->contentLength)
 		{
 			this->state = DONE;
-			// std::cerr << "body : " << _body.str() << std::endl;
 		}
 		else if (_body.str().size() > this->contentLength)
 		{
-			std::cerr << "body : " << _body.str().size() << std::endl;
-			std::cerr << "contentLength : " << this->contentLength << std::endl;
 			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;

@@ -1,39 +1,5 @@
 #include "Error.hpp"
 
-std::string getStatusMessage( uint16_t status )
-{
-	switch(status)
-	{
-		case OK:
-			return "OK";
-		case CREATED:
-			return "Created";
-		case VERSION_NOT_SUPPORTED:
-			return "HTTP Version Not Supported";
-		case NO_CONTENT:
-			return "No Content";
-		case MOVED_PERMANENTLY:
-			return "Moved Permanently";
-		case MOVED_TEMPORARILY:
-			return "Moved Temporarily";
-		case BAD_REQUEST:
-			return "Bad Request";
-		case FORBIDDEN:
-			return "Forbidden";
-		case NOT_FOUND:
-			return "Not Found";
-		case INTERNAL_SERVER_ERROR:
-			return "Internal Server Error";
-		case NOT_IMPLEMENTED:
-			return "Not Implemented";
-		case BAD_GATEWAY:
-			return "Bad Gateway";
-		default:
-			throw std::runtime_error("Unknown status code");
-	}
-}
-
-
 Error::Error( uint16_t error )
 {
 	this->_error = error;
