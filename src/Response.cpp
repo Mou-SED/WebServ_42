@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/17 21:28:08 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 17:13:59 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -101,95 +101,47 @@ void Response::toStringDelete( void )
 	this->_headers += "Connection: close\r\n\r\n";
 }
 
+void Response::toStringPut( void )
+{
+	this->_headers += "HTTP/1.1 ";
+	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
+	this->_headers += "\r\n";
+	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
+	this->_headers += "Date: " + getDate() + "\r\n";
+	this->_headers += "Content-Location: " + this->_request.getUri() + "\r\n";
+	this->_headers += "Connection: close\r\n\r\n";
+}
+
 void Response::generateResponse(void)
 {
 	std::string method = this->_request.getMethod();
 
-	if ( method == "GET" ) GET();
-	else if ( method == "POST" )
-	{}
+	std::string uri = this->_request.getUri();
+	this->setUri(uri);
+	std::string root = this->_request.getServer()->getRoot();
+
+
+	std::pair<std::string, Directives > * location = this->_request.getServer()->matchLocation(uri);
+	if ( location != nullptr and location->second.count("root") != 0 ) root = location->second["root"][0];
+
+	std::string path = this->_request.getServer()->getRoot() + uri;
+	this->setPath(path);
+
+	if (findVector(this->_request.getMethod(), location->second["allowed_methods"]) == false)
+	{
+		this->_status = METHOD_NOT_ALLOWED;
+		this->generateErrorResponse();
+		return ;
+	}
+
+	if ( method == "GET" ) GET( location );
+	else if ( method == "PUT" ) PUT();
+	else if ( method == "POST" ) POST( location );
 	else if ( method == "DELETE" ) DELETE();
 }
 
-bool	checkDirFile(std::string &path, std::string const &index)
+bool	Response::redirection(std::string &path,std::string const & uri, std::pair<std::string, Directives > * location)
 {
-	std::vector<std::string> indexes = split(const_cast<std::string &>(index), ' ', false);
-	for (size_t i = 0; i < indexes.size(); i++)
-	{
-		std::cerr << "index : " << indexes[i] << std::endl;
-		DIR *dir;
-		struct dirent *ent;
-		bool ret = false;
-
-		if ((dir = opendir(path.c_str())) != NULL)
-		{
-			while ((ent = readdir(dir)) != NULL)
-			{
-				std::cerr << ent->d_name << std::endl;
-				if ( ent->d_name == indexes[i] )
-				{
-					std::cerr << "index found" << std::endl;
-					path += indexes[i];
-					ret = true;
-					break ;
-				}
-			}
-			closedir(dir);
-		}
-		if (ret == true)
-			return ret;
-	}
-	return false;
-}
-
-std::string const generateDirectory(std::string const &path)
-{
-    std::stringstream ss;
-    ss << "<!DOCTYPE html>\n<html>\n\t<head>\n\t\t<title>Directory Listing</title>\n\t\t<style>\n\t\t\ttable {\n\t\t\t\tborder-collapse: collapse;\n\t\t\t\tmargin: auto;\n\t\t\t\twidth: 100%;\n\t\t\t}\n\t\t\tth, td {\n\t\t\t\tpadding: 8px;\n\t\t\t\ttext-align: left;\n\t\t\t\tborder-bottom: 1px solid #ddd;\n\t\t\t}\n\t\t\tth {\n\t\t\t\tbackground-color: #f2f2f2;\n\t\t\t}\n\t\t</style>\n\t</head>\n\t<body>\n\t\t<h1>Directory Listing</h1>\n\t\t<hr>\n\t\t<table>\n\t\t\t<tr><th>Type</th><th>Name</th><th>Size (bytes)</th><th>Creation Date</th><th>Extension</th></tr>\n";
-
-    DIR* dir = opendir(path.c_str());
-    if (dir != NULL) {
-        struct dirent* entry;
-        while ((entry = readdir(dir)) != NULL) {
-            if (entry->d_name[0] == '.') {
-                continue;
-            }
-            struct stat fileStat;
-            std::string entryPath = path + "/" + entry->d_name;
-            if (stat(entryPath.c_str(), &fileStat) < 0) {
-                std::cerr << "Error: Failed to get file stats for " << entryPath << std::endl;
-                continue;
-            }
-            ss << "\t\t\t<tr>\n";
-            if (S_ISDIR(fileStat.st_mode)) {
-                ss << "\t\t\t\t<td>Directory</td>\n";
-                ss << "\t\t\t\t<td><a href=\"" << entry->d_name << "/\">" << entry->d_name << "/</a></td>\n";
-                ss << "\t\t\t\t<td></td>\n";
-                ss << "\t\t\t\t<td>" << std::put_time(std::gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
-                ss << "\t\t\t\t<td></td>\n";
-            } else if (S_ISREG(fileStat.st_mode)) {
-                ss << "\t\t\t\t<td>File</td>\n";
-                ss << "\t\t\t\t<td><a href=\"" << entry->d_name << "\">" << entry->d_name << "</a></td>\n";
-                ss << "\t\t\t\t<td>" << fileStat.st_size << "</td>\n";
-                ss << "\t\t\t\t<td>" << std::put_time(std::gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
-                ss << "\t\t\t\t<td>" << std::string(entry->d_name).substr(std::string(entry->d_name).find_last_of(".") + 1) << "</td>\n";
-            }
-            ss << "\t\t\t</tr>\n";
-        }
-        closedir(dir);
-    } else {
-        std::cerr << "Error: Failed to open directory " << path << std::endl;
-    }
-
-    ss << "\t\t</table>\n";
-    ss << "\t</body>\n";
-    ss << "</html>\n";
-    return ss.str();
-}
-
-bool	Response::redirection(std::string &path,std::string &uri, std::pair<std::string, Directives > * location)
-{
-	std::cerr << location->second["return"][0] << std::endl;
 	std::vector<std::string> ret = split(location->second["return"][0], ' ', false);
 	this->_status = atoi(ret[0].c_str());
 	if (ret.size() != 2)
@@ -199,49 +151,35 @@ bool	Response::redirection(std::string &path,std::string &uri, std::pair<std::st
 	}
 	else if (ret[1][0] != '/' and ret[1][0] != '.')
 	{
-		std::cerr << "URL" << std::endl;
 		this->_Location = ret[1];
 		return true;
 	}
 	else
 	{
 		path = this->_request.getServer()->getRoot() + ret[1] + uri;
-		std::cerr << "PATH: " << path << std::endl;
 		return false;
 	}
 }
 
-void Response::GET( void )
+void Response::GET( std::pair<std::string, Directives > * location )
 {
-	std::string uri = this->_request.getUri();
-	std::string root = this->_request.getServer()->getRoot();
-
-	std::pair<std::string, Directives > * location = this->_request.getServer()->matchLocation(uri);
-	if ( location != nullptr and location->second.count("root") != 0 ) root = location->second["root"][0];
-
-	std::string path = this->_request.getServer()->getRoot() + uri;
-	std::cerr<< "uri: " << uri << std::endl;
-	std::cerr<< "path: " << path << std::endl;
 	if ( not this->_request.getServer()->isLocationExist() )
 	{
 		this->_status = NOT_FOUND;
 		goto GENERATE;
 	}
-	if (location->second.find("return") != location->second.end() and redirection(path, uri, location))
+	if (location->second.find("return") != location->second.end() and redirection(this->_path, this->getUri(), location))
 		goto GENERATE;
-	if ( isDirectory(path) )
+	if ( isDirectory(this->_path) )
 	{
-		std::cerr << "Is Directory" << std::endl;
-		if ((location->second.find("autoindex") != location->second.end() and location->second["autoindex"][0] == "on" and  checkDirFile(path, "index.html")) or (location->second.find("index") != location->second.end() and checkDirFile(path, location->second["index"][0])))
+		if ((location->second.find("autoindex") != location->second.end() and location->second["autoindex"][0] == "on" and  checkDirFile(this->_path, "index.html")) or (location->second.find("index") != location->second.end() and checkDirFile(this->_path, location->second["index"][0])))
 		{
-			std::cerr << "Autoindex on" << std::endl;
-			this->setPath(path);
-			this->setBodySize(path);
+			this->setBodySize(this->_path);
 		}
 		else
 		{
-			this->_request.getServer()->setRootDirectory(path);
-			std::string const _dir = generateDirectory(path);
+			this->_request.getServer()->setRootDirectory(this->_path);
+			std::string const _dir = generateDirectory(this->_path);
 			this->setBodySize(_dir.length());
 			this->_buffer = strdup(_dir.c_str());
 			this->_isDir = true;
@@ -251,38 +189,24 @@ void Response::GET( void )
 	}
 	else
 	{
-		if ( access(path.c_str(), F_OK) == -1 )
+		if ( access(this->_path.c_str(), F_OK) == -1 )
 			this->_status = NOT_FOUND;
-		else if ( access(path.c_str(), R_OK) == -1 )
+		else if ( access(this->_path.c_str(), R_OK) == -1 )
 			this->_status = FORBIDDEN;
 		else
 		{
-			this->setPath(path);
-			this->setBodySize(path);
+			this->setBodySize(this->_path);
 		}
 	}
 	GENERATE:
 		if ( this->_status >= BAD_REQUEST)
-		{
-			Error error(this->_status, this->_error_pages);
-			this->setBodySize(error.getErrorBody().length());
-			this->_buffer = strdup(error.getErrorBody().c_str());
-			this->toString("text/html");
-		}
+			this->generateErrorResponse();
 		else
 			this->toStringGet();
 }
 
 void Response::DELETE( void )
 {
-	std::string uri = this->_request.getUri();
-	std::string root = this->_request.getServer()->getRoot();
-
-	std::pair<std::string, Directives > * location = this->_request.getServer()->matchLocation(uri);
-	if ( location != nullptr and location->second.count("root") != 0 ) root = location->second["root"][0];
-
-	std::string path = this->_request.getServer()->getRoot() + uri;
-	this->setPath(path);
 	if ( isDirectory(this->_path) or access(this->_path.c_str(), F_OK) == -1 )
 		this->_status = FORBIDDEN;
 	else if ( access(this->_path.c_str(), W_OK) == -1 )
@@ -295,14 +219,54 @@ void Response::DELETE( void )
 	}
 	this->_buffer = strdup("");
 	if ( this->_status >= BAD_REQUEST )
-	{
-		Error error(this->_status, this->_error_pages);
-		this->setBodySize(error.getErrorBody().length());
-		this->_buffer = strdup(error.getErrorBody().c_str());
-		this->toString("text/html");
-	}
+		this->generateErrorResponse();
 	else
 		this->toStringDelete();
+}
+
+void Response::PUT( void )
+{
+	std::ifstream ifs(this->_path.c_str());
+	if ( ifs )
+	{
+		ifs.close();
+		std::ofstream ofs(this->_path.c_str());
+		ofs << this->_request.getBody();
+		ofs.close();
+		this->_status = NO_CONTENT;
+	}
+	else
+	{
+		std::ofstream ofs(this->_path.c_str());
+		ofs << this->_request.getBody();
+		ofs.close();
+
+		this->_status = CREATED;
+	}
+	if ( isDirectory(this->_path.c_str()) )
+		this->_status = CONFLICT;
+
+	this->_buffer = strdup("");
+	if ( this->_status >= BAD_REQUEST )
+		this->generateErrorResponse();
+	else
+		this->toStringPut();
+}
+
+void Response::POST( std::pair<std::string, Directives > * location )
+{
+	// TODO : Handle CGI
+	// if file is CGI run it
+	// else
+	GET( location );
+}
+
+void Response::generateErrorResponse( void )
+{
+	Error error(this->_status, this->_error_pages);
+	this->setBodySize(error.getErrorBody().length());
+	this->_buffer = strdup(error.getErrorBody().c_str());
+	this->toString("text/html");
 }
 
 std::string Response::getHeaders(void) const
@@ -372,38 +336,17 @@ void Response::setPath(std::string &path)
 	this->_path = path;
 }
 
-std::string Response::getStatusMessage(uint16_t status)
+void Response::setUri(std::string &uri)
 {
-	switch(status)
-	{
-		case OK:
-			return "OK";
-		case CREATED:
-			return "Created";
-		case NO_CONTENT:
-			return "No Content";
-		case MOVED_PERMANENTLY:
-			return "Moved Permanently";
-		case MOVED_TEMPORARILY:
-			return "Moved Temporarily";
-		case BAD_REQUEST:
-			return "Bad Request";
-		case FORBIDDEN:
-			return "Forbidden";
-		case NOT_FOUND:
-			return "Not Found";
-		case INTERNAL_SERVER_ERROR:
-			return "Internal Server Error";
-		case NOT_IMPLEMENTED:
-			return "Not Implemented";
-		case BAD_GATEWAY:
-			return "Bad Gateway";
-		default:
-			throw std::runtime_error("Unknown status code");
-	}
+	this->_uri = uri;
 }
 
 uint16_t Response::getStatus(void) const
 {
 	return this->_status;
+}
+
+std::string Response::getUri(void) const
+{
+	return this->_uri;
 }

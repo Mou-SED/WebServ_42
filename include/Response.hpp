@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/21 16:20:23 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/17 21:28:15 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 17:14:09 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class Response
 		std::string contentLength;
 		off_t 		_bodySize;
 		std::string _path;
-		// Error 		_error;
+		std::string _uri;
 
 	public:
 		char *_buffer;
@@ -44,16 +44,18 @@ class Response
 		std::string	getResponse( void ) const;
 		void		toStringGet( void );
 		void		toStringDelete( void );
+		void		toStringPut( void );
 		void		toString( std::string const &type);
 		void		generateResponse( void );
-		bool		redirection(std::string &path,std::string &uri, std::pair<std::string, Directives > * location);
+		void		generateErrorResponse( void );
+		bool		redirection(std::string &path,std::string const & uri, std::pair<std::string, Directives > * location);
 
 		std::string	getDate( void ) const;
 		std::string getHeaders( void ) const;
 		std::string getPath( void ) const;
 		off_t		getBodySize( void ) const;
-		static		std::string getStatusMessage( uint16_t status );
 		uint16_t	getStatus( void ) const;
+		std::string getUri( void ) const;
 		void 		clear( void );
 
 		void		setErrorPages(std::vector<std::string> &error_pages);
@@ -61,7 +63,10 @@ class Response
 		void 		setBodySize( std::string &path );
 		void		setBodySize( off_t size );
 		void 		setPath( std::string &path );
+		void		setUri( std::string &uri );
 
-		void GET( void );
+		void GET( std::pair<std::string, Directives > * location );
 		void DELETE( void );
+		void PUT( void );
+		void POST( std::pair<std::string, Directives > * location );
 };

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/18 09:45:46 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 16:43:09 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,16 +221,11 @@ void Core::readRequest( int clientFd )
 	char buffer[BUFSIZE];
 
 	ssize_t readBytes = recv( clientFd, buffer, BUFSIZE, 0 );
-	if ( readBytes == -1  )
-	{
-		std::cerr << "Ana sbab fhadchi" << std::endl;
-		return ;
-	}
-	// std::cerr << "Read " << readBytes << " body " << buffer << std::endl;
+	if ( readBytes == -1  ) return ;
+
 	Request &request = this->_requests[clientFd];
 	if ( readBytes == 0 )
 	{
-		std::cerr << "I'm Here" << std::endl;
 		// INFO: The client has closed the connection
 		request.state = SENT;
 	}
@@ -239,7 +234,6 @@ void Core::readRequest( int clientFd )
 	request.mainParsingRequest( ss );
 	if ( request.state == DONE )
 	{
-		std::cerr<< "Hello Server" << std::endl;
 		request.setServer( getServer( clientFd, request.getHeaders()["host"] ) );
 	}
 
@@ -287,24 +281,26 @@ void Core::sentGetResponse(int clientFd)
 	return ;
 }
 
-void Core::sentDeleteResponse( int clientFd )
+void Core::sentHeadersResponse( int clientFd )
 {
 	Response & response = this->_responses[clientFd];
 	Request & request = this->_requests[clientFd];
 	response.setRequest( request );
 	response.generateResponse();
+
 	send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
-	if ( response.getStatus() < BAD_REQUEST)
+	if ( response.getStatus() < BAD_REQUEST )
 	{
 		response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
 		this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
 		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
 		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
 	}
+
 	ssize_t sentBytes = send(
 		clientFd,
 		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
-		std::min((off_t)BUFSIZE, this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent),
+		this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent,
 		0
 	);
 
@@ -325,6 +321,10 @@ void Core::sentResponse( int clientFd )
 	if ( this->_requests[clientFd].getMethod() == "GET" )
 		this->sentGetResponse( clientFd );
 	else if ( this->_requests[clientFd].getMethod() == "DELETE" )
-		this->sentDeleteResponse( clientFd );
+		this->sentHeadersResponse( clientFd );
+	else if ( this->_requests[clientFd].getMethod() == "PUT" )
+		this->sentHeadersResponse( clientFd );
+	else if ( this->_requests[clientFd].getMethod() == "POST" )
+		this->sentHeadersResponse( clientFd );
 }
 
