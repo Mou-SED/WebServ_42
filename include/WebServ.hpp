@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/17 20:13:42 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 14:18:38 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,6 +62,7 @@ void	root_check(std::string const & value);
 void	index_check(std::string const & value);
 void	location_check(std::string const & value);
 void	redirectionCheck(std::string const & value);
+void	allowed_methods_check(std::string const & value);
 
 std::vector<std::string> split(std::string const &str, char delim, bool keepIt);
 std::vector<std::string> split(std::string &str, char delim, bool keepDelim);

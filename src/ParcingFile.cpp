@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParcingFile.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/17 14:53:52 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 14:38:59 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ int  Check::num_line;
 std::set<std::string> Check::methods;
 std::string Check::key;
 std::string Check::value;
-std::vector<std::string> type_value = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex", "return", "cgi_pass", };
+std::vector<std::string> type_value = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex", "return", "cgi_pass", "allowed_methods" };
 std::stack<char> Check::brackets;
 
 bool Check::ipAddress(std::string s)
@@ -104,6 +104,8 @@ void	check_value(std::string const &key, std::string const & value)
 		server_name_check(value);
 	else if (key == "error_page")
 		error_page_check(value);
+	else if (key == "allowed_methods")
+		allowed_methods_check(value);
 	else if (key == "client_max_body_size")
 		client_max_body_size_check(value);
 	else if (key == "root")
@@ -123,6 +125,19 @@ void	check_value(std::string const &key, std::string const & value)
 		redirectionCheck(value);
 	else if (key != "server" and key != "location")
 		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
+}
+
+void allowed_methods_check(std::string const & value)
+{
+	std::vector<std::string> methods = split(value, ' ', false);
+
+	for (size_t i = 0; i < methods.size() - 1; i++)
+	{
+		if (methods[i] == "GET" or methods[i] == "POST" or methods[i] == "DELETE" or methods[i] == "PUT")
+			continue ;
+		else
+			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown method `" + methods[i] + "`");
+	}
 }
 
 std::string  get_value(std::string const &str, size_t pos)
