@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 18:13:13 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 18:19:32 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -127,7 +127,7 @@ void Response::generateResponse(void)
 	std::string path = this->_request.getServer()->getRoot() + uri;
 	this->setPath(path);
 
-	if (findVector(this->_request.getMethod(), location->second["allowed_methods"]) == false)
+	if (location->second.find("allowed_methods") != location->second.end() and findVector(this->_request.getMethod(), location->second["allowed_methods"]) == false)
 	{
 		this->_status = METHOD_NOT_ALLOWED;
 		this->generateErrorResponse();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:45 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/18 17:14:30 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/18 18:26:18 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,6 @@ bool	findVector(T key, std::vector<T> vec)
 
 	for (size_t i = 0; i < splitVec.size(); i++)
 	{
-		std::cout << "splitVec :" << splitVec[i] << std::endl;
-		std::cout << "key :" << key << std::endl;
 		if (splitVec[i] == key)
 			return true;
 	}

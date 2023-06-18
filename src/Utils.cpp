@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/18 17:14:18 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/18 18:23:52 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -161,7 +161,6 @@ std::string const generateDirectory(std::string const &path)
             struct stat fileStat;
             std::string entryPath = path + "/" + entry->d_name;
             if (stat(entryPath.c_str(), &fileStat) < 0) {
-                std::cerr << "Error: Failed to get file stats for " << entryPath << std::endl;
                 continue;
             }
             ss << "\t\t\t<tr>\n";
@@ -182,7 +181,7 @@ std::string const generateDirectory(std::string const &path)
         }
         closedir(dir);
     } else {
-        std::cerr << "Error: Failed to open directory " << path << std::endl;
+        ss << "\t\t\t<tr><td colspan=\"5\">Error: Could not open directory</td></tr>\n";
     }
 
     ss << "\t\t</table>\n";
