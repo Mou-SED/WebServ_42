@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/17 17:18:35 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/18 14:45:47 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,8 @@ void parc_location(std::ifstream &file, std::string &value, Server &servers)
 			if (servers.context[servers.context.size() - 1].second.find(key) != servers.context[servers.context.size() - 1].second.end() and
 				(key == "root" or key == "client_max_body_size" or key == "autoindex"))
 				throw std::runtime_error("Syntax error : " + key + " directive already exist");
+			if ( key == "listen" or key == "server_name" or key == "error_page" )
+				throw std::runtime_error("Syntax error : " + key + " directive not allowed in location block");
 			servers.context[servers.context.size() - 1].second[key].push_back(value);
 		}
 	}
@@ -99,6 +101,8 @@ Server parc_server(std::ifstream &file, std::string &line)
 			if (server.directives.find(key) != server.directives.end() and
 				(key == "root" or key == "client_max_body_size" or key == "autoindex"))
 				throw std::runtime_error("Syntax error : " + key + " directive already exist");
+			if ( key == "allowed_methods" )
+				throw std::runtime_error("Syntax error : " + key + " directive not allowed in server block");
 			server.directives[key].push_back(value);
 		}
 	}
