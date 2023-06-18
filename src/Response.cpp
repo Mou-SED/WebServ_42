@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 17:13:59 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/18 18:13:13 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,23 @@ void Response::generateResponse(void)
 		this->_status = METHOD_NOT_ALLOWED;
 		this->generateErrorResponse();
 		return ;
+	}
+
+	if ( not this->_request.getServer()->isLocationExist() )
+	{
+		std::string query = uri.substr(uri.find_first_of('?') + 1);
+		std::cerr << "QUERY: " << query << std::endl;
+		Cgi cgi;
+		cgi.setPath(path);
+		cgi.setApp("Python3");
+		cgi.execute();
+		std::cerr << "RESPONSE: " << cgi.getResponse() << std::endl;
+		this->_buffer = strdup(cgi.getResponse().c_str());
+		this->setBodySize(cgi.getResponse().length());
+		toString("text/html");
+		this->_isCGI = true;
+		return ;
+		// if (location->first == "cgi")
 	}
 
 	if ( method == "GET" ) GET( location );
