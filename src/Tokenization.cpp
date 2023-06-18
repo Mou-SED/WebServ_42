@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/15 17:29:22 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/17 17:18:35 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -206,6 +206,11 @@ std::string Server::getAutoindex(void) const
 bool Server::isLocationExist(void) const
 {
 	return (this->context.size() > 0);
+}
+
+void Server::setRootDirectory(std::string root)
+{
+	this->directives["root"].push_back(root);
 }
 
 std::vector<Server> Tokenization(std::ifstream &file)
