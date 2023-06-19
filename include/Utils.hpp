@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:45 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/18 18:26:18 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/19 10:51:37 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ void	print_servers(Server &servers, int ind);
 bool	checkDirFile(std::string &path, std::string const &index);
 std::string const generateDirectory(std::string const &path);
 bool findIf( std::map<std::string, std::string> &headers, std::vector<std::string> const v );
+void removeDirectory(const char* path);
 std::string getStatusMessage( uint16_t status );
 
 template <typename T>

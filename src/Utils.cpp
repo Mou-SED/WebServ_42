@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/18 18:23:52 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/19 10:54:31 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -199,6 +199,25 @@ bool findIf( std::map<std::string, std::string> &headers, std::vector<std::strin
 	}
 
 	return false;
+}
+
+void removeDirectory(const char* path)
+{
+	DIR* dir = opendir(path);
+	dirent* entry;
+
+	while ((entry = readdir(dir)) != NULL)
+	{
+		if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0)
+		{
+			char file_path[FILENAME_MAX];
+			snprintf(file_path, FILENAME_MAX, "%s/%s", path, entry->d_name);
+			if (entry->d_type == DT_DIR) removeDirectory(file_path);
+			else remove(file_path);
+		}
+	}
+	closedir(dir);
+	rmdir(path);
 }
 
 std::string getStatusMessage( uint16_t status )

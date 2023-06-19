@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 18:19:32 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/19 10:56:52 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -224,7 +224,13 @@ void Response::GET( std::pair<std::string, Directives > * location )
 
 void Response::DELETE( void )
 {
-	if ( isDirectory(this->_path) or access(this->_path.c_str(), F_OK) == -1 )
+	if ( isDirectory( this->_path ) )
+	{
+		removeDirectory(this->_path.c_str());
+		this->_status = NO_CONTENT;
+		goto END;
+	}
+	if ( access(this->_path.c_str(), F_OK) == -1 )
 		this->_status = FORBIDDEN;
 	else if ( access(this->_path.c_str(), W_OK) == -1 )
 		this->_status = FORBIDDEN;
@@ -235,10 +241,11 @@ void Response::DELETE( void )
 		this->_status = NO_CONTENT;
 	}
 	this->_buffer = strdup("");
-	if ( this->_status >= BAD_REQUEST )
-		this->generateErrorResponse();
-	else
-		this->toStringDelete();
+	END:
+		if ( this->_status >= BAD_REQUEST )
+			this->generateErrorResponse();
+		else
+			this->toStringDelete();
 }
 
 void Response::PUT( void )
