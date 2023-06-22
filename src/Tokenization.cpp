@@ -6,12 +6,13 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 14:45:47 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/19 20:29:46 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServ.hpp"
 #include "Tokenization.hpp"
+#include "Utils.hpp"
 
 extern std::vector<std::string> type_value;
 
@@ -70,7 +71,7 @@ void parc_location(std::ifstream &file, std::string &value, Server &servers)
 			if (servers.context[servers.context.size() - 1].second.find(key) != servers.context[servers.context.size() - 1].second.end() and
 				(key == "root" or key == "client_max_body_size" or key == "autoindex"))
 				throw std::runtime_error("Syntax error : " + key + " directive already exist");
-			if ( key == "listen" or key == "server_name" or key == "error_page" )
+			if ( key == "listen" or key == "server_name" or key == "error_page" or key == "client_max_body_size")
 				throw std::runtime_error("Syntax error : " + key + " directive not allowed in location block");
 			servers.context[servers.context.size() - 1].second[key].push_back(value);
 		}

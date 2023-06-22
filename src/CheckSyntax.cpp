@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   CheckSyntax.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/29 18:56:18 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/17 17:10:07 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/19 21:38:51 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,8 @@ void	client_max_body_size_check(std::string const & value)
 	std::stringstream ss(value);
 	std::string s;
 	ss >> s;
+	if (split(value, ' ', false).size() > 1)
+		throw std::runtime_error("Error: syntax error code : client max body size must be followed by only one value `10M` or `10K`...");
 	int num = atoi(s.c_str());
 	s.erase(0, std::to_string(num).size());
 	s.erase(s.size() - 1, 1);

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/19 10:54:31 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/19 20:37:26 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -252,6 +252,8 @@ std::string getStatusMessage( uint16_t status )
 			return "Conflict";
 		case METHOD_NOT_ALLOWED:
 			return "Not Allowed";
+		case REQUEST_ENTITY_TOO_LARGE:
+			return "Request Entity Too Large";
 		default:
 			throw std::runtime_error("Unknown status code");
 	}
