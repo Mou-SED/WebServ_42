@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/18 14:49:22 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/22 16:59:03 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,28 @@ void	checkHeaders(std::map<std::string, std::string> &headers)
 		throw std::runtime_error("Host header is missing");
 }
 
+void File::createName( void )
+{
+	srand(time(NULL));
+	for (int i = 0; i < 524288; i++)
+	{
+		int ch = rand() % 62;
+
+		if (ch < 26)
+			name += char(ch + 'a');
+		else if (ch < 52)
+			name += char(ch + 'A');
+		else
+			name += char(ch + '0');
+
+		std::string tmp = "/tmp/." + name;
+		if (access(tmp.c_str(), R_OK != 0))
+			break;
+	}
+	name = "." + name + ".tmp";
+	path = "/tmp/" + name;
+}
+
 
 Request::Request(void)
 {
@@ -26,8 +48,19 @@ Request::Request(void)
 	this->contentLength = 0;
 	this->status = OK;
 	this->_server = nullptr;
+	_bodySize = 0;
 
 	return;
+}
+
+Request::~Request(void)
+{
+	if (file.path.size() > 0)
+	{
+		std::remove(file.path.c_str());
+		file.file.close();
+		close(file.WR_fd);
+	}
 }
 
 std::string Request::getMethod(void) const
@@ -59,6 +92,10 @@ void Request::clear(void)
 	this->state = REQUEST_LINE;
 	this->isChunked = false;
 	this->status = 0;
+	this->_chunkedBody.str("");
+	this->_chunkedBody.clear();
+	this->_body.str("");
+	this->_body.clear();
 }
 
 uint16_t Request::getStatus(void) const
@@ -121,6 +158,14 @@ Request & Request::operator=(Request const & rhs)
 	this->contentLength = rhs.contentLength;
 	this->status = rhs.status;
 	this->_server = rhs._server;
+	this->_bodySize = rhs._bodySize;
+	if (rhs.file.path.size() > 0)
+	{
+		this->file.name = rhs.file.name;
+		this->file.path = rhs.file.path;
+		close(this->file.WR_fd);
+		this->file.WR_fd = open(this->file.path.c_str(), O_RDWR | O_CREAT, 0666);
+	}
 
 	return *this;
 }
@@ -158,6 +203,13 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			if ( this->_headers["transfer-encoding"] == "chunked" ) this->isChunked = true;
 			if (not this->_headers["content-length"].empty()) this->contentLength = std::stoll(this->_headers["content-length"]);
 			this->state = BODY;
+			this->file.WR_fd = open(this->file.path.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
+			if (this->file.WR_fd == -1)
+			{
+				this->status = INTERNAL_SERVER_ERROR;
+				this->state = ERR;
+				return false;
+			}
 			break;
 		}
 		else if ( tokens[i] == "\n" or tokens[i] == "\r\n" )
@@ -259,20 +311,62 @@ bool Request::readLine(std::stringstream &line)
 	return parsing(tokens);
 }
 
+bool isValidChunk(std::string const &str)
+{
+    size_t i = 0;
+    std::string hex;
+
+    while (isxdigit(str[i]))
+        hex += str[i++];
+    if (i == 0) {
+        return false;
+    }
+    if (str[i] == '\r' and str[i + 1] == '\n')
+        i += 2;
+    else
+        return false;	
+    std::string s = str.substr(i);
+    if (s.size() >= std::stoul(hex, nullptr, 16))
+        return true;
+    return false;
+}
+
+bool	checkEOFchunk(std::string const & str)
+{
+	std::string s;
+	if (str.size() >= 5)
+	{
+		s = str.substr(str.size() - 5, 5);
+		if (s == "0\r\n\r\n")
+			return true;
+	}
+	if (str.size() >= 3)
+	{
+		s = str.substr(str.size() - 3, 3);
+		if (s == "0\r\n" or s == "0\n\n")
+			return true;
+	}
+	return false;
+}
+
 bool Request::parsingBody(std::stringstream &buffer)
 {
 	if ( this->isChunked )
 	{
-		if ( not parsingChunked(buffer) ) return false;
+		if (not isValidChunk(buffer.str()))
+		{
+			return false;
+		}
+		else
+			return parsingChunked(buffer);
 	}
 	else
 	{
-		_body << buffer.str();
-		if (_body.str().size() == this->contentLength)
-		{
+		int WR_size = write(this->file.WR_fd, buffer.str().c_str(), buffer.str().size());
+		_bodySize += WR_size;
+		if (_bodySize == (off_t)this->contentLength)
 			this->state = DONE;
-		}
-		else if (_body.str().size() > this->contentLength)
+		else if (_bodySize > (off_t)this->contentLength)
 		{
 			this->status = BAD_REQUEST;
 			this->state = ERR;
@@ -281,7 +375,6 @@ bool Request::parsingBody(std::stringstream &buffer)
 	}
 	return true;
 }
-
 
 void Request::setUri(std::string uri)
 {
@@ -293,12 +386,20 @@ void Request::setServer(Server *server)
 	this->_server = server;
 }
 
+int x = 0;
 bool Request::mainParsingRequest(std::stringstream &ss)
 {
-
+	if ( not ss.str().empty() and this->state == BODY)
+	{
+		this->_chunkedBody << ss.str();
+	}
 	if ( this->state == BODY )
 	{
-		checkHeaders(this->_headers);
+		if (x == 0)
+		{
+			x++;
+			checkHeaders(this->_headers);
+		}
 		return parsingBody(ss);
 	}
 	else if ( ss.str().find("\n") == std::string::npos )
@@ -310,46 +411,49 @@ bool Request::mainParsingRequest(std::stringstream &ss)
 		return ( readLine(ss) );
 }
 
+int checkCRLF(std::string const & str, int len)
+{
+	int i = len;
+	if (str.size() >= 2 and str[i] == '\r' and str[i + 1] == '\n')
+		return 2;
+	else if (str.size() >= 1 and str[i] == '\n')
+		return 1;
+	else
+		return 0;
+}
+size_t pos = 0;
+
 bool Request::parsingChunked(std::stringstream &buffer)
 {
-	if (not _chunkedTurn)
+	off_t len = 0;
+	if (not this->_chunkedTurn)
 	{
-		try
+		len = std::stoll(buffer.str(), 0, 16);
+		if (len == 0)
 		{
-			if (buffer.str().find("\n") == std::string::npos ) return false;
-
-			this->contentLength = std::stoi(buffer.str(), 0, 16);
-			if (this->contentLength == 0)
-			{
-				this->state = DONE;
-				return true;
-			}
-			_chunkedTurn = true;
+			this->state = DONE;
+			return true;
 		}
-		catch (const std::exception &e)
-		{
-			std::cerr << e.what() << '\n';
-			this->status = BAD_REQUEST;
-			this->state = ERR;
-			return false;
-		}
+		_chunkedTurn = true;
 	}
-	else
+	if (this->_chunkedTurn)
 	{
-		_chunkedBody << buffer.str();
-		if (_chunkedBody.str().size() == this->contentLength)
-		{
-			_chunkedBody.clear();
-			_chunkedTurn = false;
-		}
-		if (_chunkedBody.str().size() > this->contentLength)
-		{
-			this->status = BAD_REQUEST;
-			this->state = ERR;
+		std::stringstream ss;
+		ss << buffer.str().substr(buffer.str().find_first_of("\n") + 1);
+		len = std::min(len, (off_t)ss.str().size());
+		this->_body << ss.str().substr(0, len);
+		this->contentLength += len;
+		buffer.str( ss.str().substr(len + checkCRLF(ss.str(), len)) );
+		this->_chunkedTurn = false;
+		if (buffer.str().empty())
 			return false;
+		if (buffer.str() == "0\r\n\r\n" or buffer.str() == "0\n\n")
+		{
+			this->state = DONE;
+			return true;
 		}
-		this->_body << _chunkedBody.str();
+		if (isValidChunk(buffer.str()))
+			return parsingChunked(buffer);
 	}
-
-	return true;
+		return false;
 }

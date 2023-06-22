@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 14:18:38 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/22 12:31:15 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@
 #include "Utils.hpp"
 
 #define MAX_EVENTS 1024
-#define MAX_BUFFSIZE 1048576
+#define MYBUFSIZ 1048576
 
 
 void	check_syntax(std::ifstream &file);

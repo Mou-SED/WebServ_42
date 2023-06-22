@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/19 10:56:52 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/22 17:00:16 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,8 @@ Response::Response( uint16_t status )
 
 Response::~Response( void )
 {
+	if (_bodySize > 0)
+		delete [] _buffer;
 	return ;
 }
 
@@ -250,23 +252,46 @@ void Response::DELETE( void )
 
 void Response::PUT( void )
 {
-	std::ifstream ifs(this->_path.c_str());
-	if ( ifs )
+	char c = this->_request.getServer()->directives["client_max_body_size"][0].back();
+	size_t max_body_size = std::atoi(this->_request.getServer()->directives["client_max_body_size"][0].c_str());
+	if ( c == 'K' )
+		max_body_size *= 1024;
+	else if ( c == 'M' )
+		max_body_size *= MYBUFSIZ;
+	if ( this->_request._bodySize > (off_t)max_body_size )
 	{
-		ifs.close();
-		std::ofstream ofs(this->_path.c_str());
-		ofs << this->_request.getBody();
-		ofs.close();
-		this->_status = NO_CONTENT;
+		this->_status = REQUEST_ENTITY_TOO_LARGE;
+		this->generateErrorResponse();
+		return ;
 	}
-	else
-	{
-		std::ofstream ofs(this->_path.c_str());
-		ofs << this->_request.getBody();
-		ofs.close();
 
-		this->_status = CREATED;
+	this->_status = CREATED;
+	std::ifstream ifs(this->_path.c_str());
+	if ( ifs.is_open() )
+	{
+		this->_status = NO_CONTENT;
+		ifs.close();
 	}
+	if (access(this->_path.c_str(), F_OK) == 0)
+		this->_status = NO_CONTENT;
+	int fd = open(this->_path.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	if (fd < 0)
+	{
+		this->_status = INTERNAL_SERVER_ERROR;
+		this->generateErrorResponse();
+		return ;
+	}
+
+	off_t len = this->_request._bodySize;
+	char buffer[MYBUFSIZ + 1] = {0};
+	while ( len > 0 and this->_request.file.WR_fd != -1 )
+	{
+		int readBytes = read(this->_request.file.WR_fd, buffer, MYBUFSIZ);
+		write(fd, buffer, readBytes);
+		len -= readBytes;
+	}
+	close(fd);
+
 	if ( isDirectory(this->_path.c_str()) )
 		this->_status = CONFLICT;
 

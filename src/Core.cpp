@@ -6,13 +6,11 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/18 16:43:09 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/22 16:57:35 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Core.hpp"
-
-unsigned int BUFSIZE = 1048576;
 
 std::pair<uint32_t, uint16_t> Core::getHostAndPort( std::string const & host, std::string const & port )
 {
@@ -134,15 +132,16 @@ void Core::start( void )
 			}
 			if ( this->_requests[currentFd].state == SENT )
 			{
+				std::cerr << "Close connection on fd " << currentFd << std::endl;
 				this->removePollFd( currentFd );
 				this->_serversByFd.erase( currentFd );
+				this->_requests[currentFd].clear();
 				this->_requests.erase( currentFd );
 				this->_responses.erase( currentFd );
 				close( currentFd );
 			}
 		}
 	}
-
 	return ;
 }
 
@@ -218,9 +217,9 @@ Server * Core::getServer( int fd, const std::string & host )
 
 void Core::readRequest( int clientFd )
 {
-	char buffer[BUFSIZE];
+	char buffer[MYBUFSIZ];
 
-	ssize_t readBytes = recv( clientFd, buffer, BUFSIZE, 0 );
+	ssize_t readBytes = recv( clientFd, buffer, MYBUFSIZ, 0 );
 	if ( readBytes == -1  ) return ;
 
 	Request &request = this->_requests[clientFd];
@@ -228,6 +227,7 @@ void Core::readRequest( int clientFd )
 	{
 		// INFO: The client has closed the connection
 		request.state = SENT;
+		return ;
 	}
 	std::stringstream ss;
 	ss.write(buffer, readBytes);
