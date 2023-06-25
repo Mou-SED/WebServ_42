@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/22 17:00:16 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/25 18:16:52 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,12 +80,12 @@ void Response::toStringGet( void )
 	this->_headers += "\r\n";
 	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_headers += "Date: " + getDate() + "\r\n";
-	if (this->_Location != "")
-	{
-		this->_headers += "Location: " + this->_Location + "\r\n";
-		this->_headers += "Connection: close\r\n\r\n";
-		return ;
-	}
+	// if (this->_Location != "")
+	// {
+	// 	this->_headers += "Location: " + this->_Location + "\r\n";
+	// 	this->_headers += "Connection: close\r\n\r\n";
+	// 	return ;
+	// }
 	this->_headers += "Accept-Ranges: bytes\r\n";
 	this->_headers += "Content-Type: " + this->_request.getContentType() + "\r\n";
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
@@ -304,10 +304,34 @@ void Response::PUT( void )
 
 void Response::POST( std::pair<std::string, Directives > * location )
 {
+	(void)location;
 	// TODO : Handle CGI
+	std::cerr << "POST" << std::endl;
 	// if file is CGI run it
-	// else
-	GET( location );
+	if (this->getUri().find("?") == std::string::npos)
+	{
+		Cgi cgi(this->getUri(), this->_request.getMethod(), this->_request, location);
+		cgi.execute();
+		this->_buffer = strdup(cgi.getBody().c_str());
+		this->_status = cgi.getStatus();
+		this->_headers = cgi.getHeaderString();
+		this->_bodySize = cgi.getSizeBody();
+		// this->_headers.append(this->_buffer, this->_buffer + this->_bodySize);
+		
+	}
+	else
+	{
+		std::cerr << this->getUri() << std::endl;
+		Cgi cgi(this->getUri(), "GET", this->_request, location);
+		cgi.execute();
+		this->_status = cgi.getStatus();
+		this->_bodySize = cgi.getSizeBody();
+		this->_buffer = new char[this->_bodySize + 1];
+		memset(this->_buffer, 0, this->_bodySize + 1);
+		this->_buffer = strdup(cgi.getBody().c_str());
+		toStringGet();
+	}
+	// 	GET( location );
 }
 
 void Response::generateErrorResponse( void )

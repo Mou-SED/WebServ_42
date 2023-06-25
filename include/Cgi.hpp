@@ -6,47 +6,14 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:08:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 17:37:23 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/25 18:18:36 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServ.hpp"
+#include "Request.hpp"
+#include <signal.h>
 
-/*
-{"%20", "Space"},
-{"%21", "!"},
-{"%22", """},
-{"%23", "#"},
-{"%24", "$"},
-{"%25", "%"},
-{"%26", "&"},
-{"%27", "'"},
-{"%28", "("},
-{"%29", ")"},
-{"%2A", "*"},
-{"%2B", "+"},
-{"%2C", ","},
-{"%2D", "-"},
-{"%2E", "."},
-{"%2F", "/"},
-{"%3A", ":"},
-{"%3B", ";"},
-{"%3C", "<"},
-{"%3D", "="},
-{"%3E", ">"},
-{"%3F", "?"},
-{"%40", "@"},
-{"%5B", "["},
-{"%5C", "\"},
-{"%5D", "]"},
-{"%5E", "^"},
-{"%5F", "_"},
-{"%60", "`"},
-{"%7B", "{"},
-{"%7C", "|"},
-{"%7D", "}"},
-{"%7E", "~"}
-*/
 
 enum eState
 {
@@ -58,39 +25,60 @@ enum eState
 	stateBody = 1 << 5,
 	stateEnd = 1 << 6,
 };
+#define SERVER_READ 0
+#define CGI_WRITE 1
+#define CGI_READ 2
+#define SERVER_WRITE 3
+
+class Request;
+
 
 class Cgi{
 	private:
-		std::string _path;
-		std::string _method;
-		std::map<std::string, std::string> _headers;
-		std::string _body;
-		std::string _response;
-		std::string _app;
-		std::map<std::string, std::string> _query;
+		std::string							_path;
+		std::string							_method;
+		std::map<std::string, std::string>	_headers;
+		std::vector<std::string> 			_cookies;
+		File								_fileBody;
+		std::string							_response;
+		std::string							_app;
+		std::string							_query;
+		std::vector<std::string>			_env;
+		uint16_t							_status;
+		off_t								_sizeBody;
+		std::string							_body;
+
 	public:
 		Cgi(void);
 		~Cgi(void);
 		Cgi(Cgi const & src);
+		Cgi(std::string const & path, std::string const & method, Request & req, std::pair<std::string, Directives > * location );
 		Cgi & operator=(Cgi const & rhs);
 		eState state;
 		off_t 	bodySize;
 		int 	execute(void);
-		int 	fds[2];
-		int 	pid;
-		int 	status;
-		int 	ret;
-
+		bool		foundBody;
+		std::vector<int> fds = std::vector<int>(4);
+		int 		pid;
+		int 		ret;
+		int			exStatus;
+		void	sendingBody(void);
 		void	childProcess(void);
 		void	parentProcess(void);
-	
-		void addQuery(std::string & key, std::string & value);
-		void setApp(std::string const & app);
-		void setPath(std::string const & path);
-		void setMethod(std::string & method);
-		void setBody(std::string & body);
+		void	setEnv(void);
+		void 	setApp(std::string const & app);
+		void 	setPath(std::string const & path);
+		void 	setMethod(std::string & method);
+		void 	setBody(std::string & body);
+		void 	setQuery(std::string & query);
 		void	setHeaders(std::map<std::string, std::string>& headers);
 		void	addHeader(std::string & key, std::string & value);
+
+		void	addToHeaders(std::string &str);
+		off_t	sizeFile( void );
+		void	createPipe(void);
+
+		void	waitingChild(void);
 
 		bool 	checkApp(const char *env_var);
 		bool 	checkPath(std::string & path);
@@ -98,13 +86,12 @@ class Cgi{
 		std::string getPath(void) const;
 		std::string getMethod(void) const;
 		std::map<std::string, std::string> getHeaders(void) const;
+		std::string getHeaderString(void) const;
 		std::string getBody(void) const;
 		std::string getResponse(void) const;
-		std::map<std::string, std::string> getQuery(void) const;
-		std::string getValueQuery(std::string const & key) const;
-
-		void	creatQuery(std::string &query);
-		void	decode(std::string &str);
+		std::string getQuery(std::string const &path) const;
+		uint16_t 	getStatus(void) const;
+		off_t 		getSizeBody(void) const;
 
 		void generateResponse(void);
 		void clear(void);

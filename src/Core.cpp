@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/22 16:57:35 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/25 18:15:13 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -287,7 +287,7 @@ void Core::sentHeadersResponse( int clientFd )
 	Request & request = this->_requests[clientFd];
 	response.setRequest( request );
 	response.generateResponse();
-
+	std::cerr << "headers sent = " << response.getHeaders() << std::endl;
 	send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
 	if ( response.getStatus() < BAD_REQUEST )
 	{
@@ -296,7 +296,7 @@ void Core::sentHeadersResponse( int clientFd )
 		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
 		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
 	}
-
+	std::cerr << "buffer sent = " << this->_responses[clientFd]._buffer << std::endl;
 	ssize_t sentBytes = send(
 		clientFd,
 		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
@@ -307,6 +307,28 @@ void Core::sentHeadersResponse( int clientFd )
 	this->_responses[clientFd].bytesSent += sentBytes;
 	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
 		this->_requests[clientFd].state = SENT;
+}
+
+void Core::sentPostResponse( int clientFd )
+{
+	Response & response = this->_responses[clientFd];
+	Request & request = this->_requests[clientFd];
+	response.setRequest( request );
+	response.generateResponse();
+	send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
+	ssize_t sentBytes = send(
+		clientFd,
+		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
+		this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent,
+		0
+	);
+
+	this->_responses[clientFd].bytesSent += sentBytes;
+	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
+	{
+		std::cerr << "Sent!!!!" << std::endl;
+		this->_requests[clientFd].state = SENT;
+	}
 }
 
 void Core::sentResponse( int clientFd )
@@ -325,6 +347,6 @@ void Core::sentResponse( int clientFd )
 	else if ( this->_requests[clientFd].getMethod() == "PUT" )
 		this->sentHeadersResponse( clientFd );
 	else if ( this->_requests[clientFd].getMethod() == "POST" )
-		this->sentHeadersResponse( clientFd );
+		this->sentPostResponse( clientFd );
 }
 

@@ -6,15 +6,12 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 17:37:37 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/25 18:24:14 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Cgi.hpp"
-
-std::map<std::string, std::string> uncode = {
-	{"%20", " "},{"%21", "!"},{"%22", "\""},{"%23", "#"},{"%24", "$"},{"%25", "%"},{"%26", "&"},{"%27", "'"},{"%28", "("},{"%29", ")"},{"%2A", "*"},{"%2B", "+"},{"%2C", ","},{"%2D", "-"},{"%2E", "."},{"%2F", "/"},{"%3A", ":"},{"%3B", ";"},{"%3C", "<"},{"%3D", "="},{"%3E", ">"},{"%3F", "?"},{"%40", "@"},{"%5B", "["},{"%5C", "\\"},{"%5D", "]"},{"%5E", "^"},{"%5F", "_"},{"%60", "`"},{"%7B", "{"},{"%7C", "|"},{"%7D", "}"},{"%7E", "~"}
-};
+#include "WebServ.hpp"
 
 Cgi::Cgi(void)
 {
@@ -32,6 +29,23 @@ Cgi::Cgi(Cgi const & src)
 	return;
 }
 
+Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location )
+{
+	(void)path;
+	std::vector<std::string> tmp = split(location->second["cgi_pass"][0], ' ', false);
+	setApp(tmp[0]);
+	setPath(tmp[1]);
+	this->_method = method;
+	this->_headers = req.getHeaders();
+	this->_query = getQuery(path);
+	this->_fileBody = req.file;
+	this->_sizeBody = sizeFile();
+	this->state = stateStar;
+	this->bodySize = 0;
+	this->_status = req.status;
+	return;
+}
+
 Cgi & Cgi::operator=(Cgi const & rhs)
 {
 	if (this != &rhs)
@@ -39,16 +53,25 @@ Cgi & Cgi::operator=(Cgi const & rhs)
 		this->_path = rhs._path;
 		this->_method = rhs._method;
 		this->_headers = rhs._headers;
-		this->_body = rhs._body;
 		this->_response = rhs._response;
 	}
 	return *this;
 }
 
+void	Cgi::createPipe(void)
+{
+	if (this->_method == "POST")
+	{
+		if (pipe(&this->fds[2]) == -1)
+			this->_status = INTERNAL_SERVER_ERROR;
+	}
+	if (pipe(&this->fds[0]) == -1)
+		this->_status = INTERNAL_SERVER_ERROR;
+}
+
 int Cgi::execute(void)
 {
-	if (pipe(fds) == -1)
-		return -1;
+	this->createPipe();
 	fcntl(fds[1], F_SETFL, O_NONBLOCK);
 	this->pid = fork();
 	if (this->pid == -1)
@@ -63,39 +86,162 @@ int Cgi::execute(void)
 void Cgi::childProcess(void)
 {
 	std::cerr << "child process" << std::endl;
-	close(fds[0]);
-	dup2(fds[1], 1);
-	close(fds[1]);
+	close(fds[SERVER_READ]);
+	dup2(fds[CGI_WRITE], 1);
+	close(fds[CGI_WRITE]);
+	if (this->_method == "POST")
+	{
+		std::cerr << "hello\n";
+		close(fds[SERVER_WRITE]);
+		dup2(fds[CGI_READ], 0);
+		close(fds[CGI_READ]);
+	}
+	setEnv();
+	char **env = new char*[this->_env.size() + 1];
+	for (size_t i = 0; i < this->_env.size(); i++)
+		env[i] = strdup(this->_env[i].c_str());
+	env[this->_env.size()] = NULL;
 	char **args = new char*[3];
 	std::cerr << "path: " << this->_path << std::endl;
 	std::cerr << "app: " << this->_app << std::endl;
 	args[0] = strdup(this->_app.c_str());
 	args[1] = strdup(this->_path.c_str());
 	args[2] = NULL;
-	execve(args[0], args, NULL);
+	std::cerr << "execve : "<< args[0] << " " << args[1] << std::endl;
+	// chdir(this->_app.c_str());
+	for (int i = 0; env[i]; i++)
+		std::cerr << env[i] << std::endl;
+	execve(args[0], args, env);
+	for (size_t i = 0; i < this->_env.size(); i++)
+		delete[] env[i];
+	delete[] env;
 	delete[] args;
 	std::cerr << "execve failed" << std::endl;
-	exit(0);
+	exit(1);
 }
 
-void	Cgi::parentProcess(void)
+off_t	Cgi::sizeFile( void )
+{
+	struct stat st;
+	if (stat(this->_fileBody.path.c_str(), &st) == -1)
+		throw std::runtime_error("stat failed");
+	return st.st_size;
+}
+
+void	Cgi::sendingBody( void )
+{
+	time_t t = time(NULL);
+
+	close(fds[CGI_READ]);
+	int fd = open(this->_fileBody.path.c_str(), O_RDONLY);
+	char buffer[MYBUFSIZ] = {0};
+	int ret;
+	off_t size = 0;
+	std::cerr << sizeFile() << std::endl;
+	while (size < sizeFile())
+	{
+		if (time(NULL) - t > 50)
+			throw std::runtime_error("CGI timeout");
+		ret = read(fd, buffer, MYBUFSIZ);
+		int bytes = write(fds[CGI_WRITE], buffer, ret);
+		if (bytes > 0)
+			size += bytes;
+	}
+	if (fd > 3)
+		close(fd);
+	close(fds[CGI_WRITE]);
+}
+
+void	Cgi::addToHeaders(std::string &str)
+{
+	size_t pos = str.find("\r\n\r\n");
+	size_t i = 0;
+	while (i < pos)
+	{
+		i = str.find("\r\n", i);
+		if (i == std::string::npos)
+			break;
+		i += 2;
+		std::string tmp = str.substr(0, i);
+		str = str.substr(i);
+		std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
+		std::vector<std::string> v = split(tmp, ':', false);
+		if (v.size() == 2)
+			this->_headers[v[0]] = v[1];
+	}
+	this->_body = str.substr(pos + 4);
+	str.clear();
+}
+
+void	Cgi::waitingChild( void )
+{
+	time_t t = time(NULL);
+
+	while (time(nullptr) - t < 50)
+	{
+		if (waitpid(this->pid, &this->exStatus, 0) == this->pid)
+		{
+			if ((WIFEXITED(this->exStatus) == true and WEXITSTATUS(this->exStatus) != EXIT_SUCCESS))
+				this->_status = BAD_GATEWAY;
+			return ;
+		}
+	}
+	this->_status = GATEWAY_TIME_OUT;
+}
+
+void	Cgi::parentProcess( void )
 {
 	std::cerr << "parent process" << std::endl;
-	close(fds[1]);
+	close(fds[CGI_WRITE]);
 	char buffer[4096];
 	int ret;
 	std::stringstream ss;
-	while ((ret = read(fds[0], buffer, 4096)) > 0)
-		ss.write(buffer, ret);
-	this->_response = ss.str();
-	close(fds[0]);
-	waitpid(this->pid, &this->status, 0);
+	try
+	{
+		if (this->_method == "POST")
+		{
+			std::cerr << "sending body" << std::endl;
+			sendingBody();
+			close(fds[CGI_READ]);
+		}
+		std::cerr << "reading" << std::endl;
+		std::string str;
+		while ((ret = read(fds[SERVER_READ], buffer, 4096)) > 0)
+		{
+			str.append(buffer, ret);
+			if (str.find("\r\n\r\n") != std::string::npos)
+				addToHeaders(str);
+			else
+				this->_body.append(buffer, ret);
+		}
+		close(fds[SERVER_READ]);
+		waitingChild();
+	}
+	catch(const std::exception& e)
+	{
+		kill(this->pid, SIGKILL);
+		this->_status = GATEWAY_TIME_OUT;
+		return ;
+	}
 }
 
-void Cgi::addQuery(std::string &key, std::string &value)
+void Cgi::setEnv(void)
 {
-	this->_query.insert(make_pair(key, value));
+	this->_env.push_back("REQUEST_METHOD=" + this->_method );
+	this->_env.push_back("CONTENT_LENGTH=10000" );
+	this->_env.push_back("CONTENT_TYPE=" + this->_headers["Content-Type"] );
+	this->_env.push_back("QUERY_STRING=" + this->_query );
+	this->_env.push_back("PATH_INFO=" + this->_path );
+	this->_env.push_back("REDIRECT_STATUS=200" );
+	this->_env.push_back("SCRIPT_NAME=" + this->_app );
+	this->_env.push_back("SERVER_NAME=" + this->_headers["Host"] );
+	this->_env.push_back("SERVER_PORT=" + this->_headers["Host"] );
+	this->_env.push_back("SERVER_PROTOCOL=HTTP/1.1" );
+	this->_env.push_back("SERVER_SOFTWARE=WebServ/0.0.1" );
+	this->_env.push_back("GATEWAY_INTERFACE=CGI/1.1" );
+	// TODO Check Cookies;
 }
+
 void Cgi::setApp(std::string const &app)
 {
 	this->_app = app;
@@ -119,39 +265,14 @@ void Cgi::setHeaders(std::map<std::string, std::string>& headers)
 	this->_headers = headers;
 }
 
-void Cgi::setBody(std::string &body)
+void Cgi::setQuery(std::string &query)
 {
-	this->_body = body;
+	this->_query = query;
 }
 
 void Cgi::addHeader(std::string &key, std::string &value)
 {
 	this->_headers.insert(make_pair(key, value));
-}
-
-void Cgi::decode(std::string &str)
-{
-	int pos = str.find("%");
-	std::string key = str.substr(str.find("%"), pos + 3);
-	str = str.substr(0, pos -1) + uncode[key] + str.substr(pos + 3);
-	
-}
-
-void	Cgi::creatQuery(std::string &query)
-{
-	std::vector<std::string> tmp = split(query, '&', false);
-	for (size_t i = 0; i < tmp.size(); i++)
-	{
-		
-		std::vector<std::string> tmp2 = split(tmp[i], '=', false);
-		if (tmp2[1].find("%") != std::string::npos)
-		{
-			decode(tmp2[1]);
-			
-		}
-		if (tmp2.size() == 2)
-			this->_query.insert(make_pair(tmp2[0], tmp2[1]));
-	}
 }
 
 bool Cgi::checkApp(const char *env_var)
@@ -170,6 +291,16 @@ bool Cgi::checkApp(const char *env_var)
 		}
 	}
 	return false;
+}
+
+std::string Cgi::getHeaderString(void) const
+{
+	std::string headers;
+	for (auto it : this->_headers)
+	{
+		headers += it.first + ": " + it.second + "\r\n";
+	}
+	return headers;
 }
 
 bool Cgi::checkPath(std::string &path)
@@ -208,22 +339,20 @@ std::string Cgi::getResponse(void) const
 	return this->_response;
 }
 
-std::string Cgi::getValueQuery(std::string const &key) const
+std::string Cgi::getQuery(std::string const &path) const
 {
-	std::map<std::string, std::string>::const_iterator it = this->_query.find(key);
-	if (it == this->_query.end())
-		return "";
-	return it->second;
+	
+	return path.substr(path.find('?') + 1);
 }
 
-void Cgi::generateResponse(void)
+uint16_t Cgi::getStatus(void) const
 {
-	std::string cmd = "php-cgi -f " + this->_path;
-	FILE *fp = popen(cmd.c_str(), "r");
-	char buf[1024];
-	while (fgets(buf, 1024, fp) != NULL)
-		this->_response += buf;
-	pclose(fp);
+	return this->_status;
+}
+
+off_t Cgi::getSizeBody(void) const
+{
+	return this->_body.size();
 }
 
 void Cgi::clear(void)
@@ -231,6 +360,5 @@ void Cgi::clear(void)
 	this->_path.clear();
 	this->_method.clear();
 	this->_headers.clear();
-	this->_body.clear();
 	this->_response.clear();
 }
