@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/22 16:50:16 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/25 20:13:52 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,7 @@ class Request
 		off_t _bodySize;
 		unsigned long long  contentLength;
 		uint16_t status;
+		int chunkSize;
 		Request(void);
 		~Request(void);
 		Request & operator=(const Request & src);

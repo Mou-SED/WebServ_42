@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/22 16:59:03 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/25 20:14:35 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,7 @@ Request::Request(void)
 	this->status = OK;
 	this->_server = nullptr;
 	_bodySize = 0;
+	this->chunkSize = -1;
 
 	return;
 }
@@ -59,7 +60,8 @@ Request::~Request(void)
 	{
 		std::remove(file.path.c_str());
 		file.file.close();
-		close(file.WR_fd);
+		if (file.WR_fd > 2)
+			close(file.WR_fd);
 	}
 }
 
@@ -191,7 +193,9 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 		);
 		std::transform(header.first.begin(), header.first.end(), header.first.begin(), ::tolower);
 
-		if ( header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first}) or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding"))
+		if ((tokens[i] != "\n" and tokens[i] != "\r\n"
+				and  (header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first})
+				or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding"))))
 		{ // TODO : check headers can be duplicated in nginx.
 			this->status = BAD_REQUEST;
 			this->state = ERR;
@@ -202,7 +206,7 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			i++;
 			if ( this->_headers["transfer-encoding"] == "chunked" ) this->isChunked = true;
 			if (not this->_headers["content-length"].empty()) this->contentLength = std::stoll(this->_headers["content-length"]);
-			this->state = BODY;
+				this->state = BODY;
 			this->file.WR_fd = open(this->file.path.c_str(), O_RDWR | O_CREAT | O_TRUNC, 0666);
 			if (this->file.WR_fd == -1)
 			{
@@ -223,10 +227,7 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 
 	this->_request.clear();
 	for (size_t j = i; j < tokens.size(); j++)
-	{
-		// if (i != 0 and tokens[i].find("Content") != std::string::npos)
-			this->_request << tokens[j];
-	}
+		this->_request << tokens[j];
 
 	return true;
 }
@@ -293,7 +294,9 @@ bool Request::parsing(std::vector<std::string> &tokens)
 		if ( not parsingHeaders(tokens) ) return false;
 	}
 	if ( state == BODY )
+	{
 		return mainParsingRequest(this->_request);
+	}
 
 	return true;
 }
@@ -318,47 +321,33 @@ bool isValidChunk(std::string const &str)
 
     while (isxdigit(str[i]))
         hex += str[i++];
-    if (i == 0) {
+    if (i == 0)
         return false;
-    }
     if (str[i] == '\r' and str[i + 1] == '\n')
         i += 2;
+	else if (str[i] == '\n')
+		i++;
     else
-        return false;	
+        return false;
     std::string s = str.substr(i);
-    if (s.size() >= std::stoul(hex, nullptr, 16))
-        return true;
+	if (s.size() >= std::stoull(hex, nullptr, 16) + 2)
+		return true;
     return false;
-}
-
-bool	checkEOFchunk(std::string const & str)
-{
-	std::string s;
-	if (str.size() >= 5)
-	{
-		s = str.substr(str.size() - 5, 5);
-		if (s == "0\r\n\r\n")
-			return true;
-	}
-	if (str.size() >= 3)
-	{
-		s = str.substr(str.size() - 3, 3);
-		if (s == "0\r\n" or s == "0\n\n")
-			return true;
-	}
-	return false;
 }
 
 bool Request::parsingBody(std::stringstream &buffer)
 {
 	if ( this->isChunked )
 	{
-		if (not isValidChunk(buffer.str()))
-		{
+		if (not isValidChunk(this->_chunkedBody.str()))
 			return false;
-		}
 		else
-			return parsingChunked(buffer);
+		{
+			if (parsingChunked(this->_chunkedBody) == false)
+				return false;
+			else
+				return true;
+		}
 	}
 	else
 	{
@@ -389,12 +378,13 @@ void Request::setServer(Server *server)
 int x = 0;
 bool Request::mainParsingRequest(std::stringstream &ss)
 {
-	if ( not ss.str().empty() and this->state == BODY)
-	{
-		this->_chunkedBody << ss.str();
-	}
 	if ( this->state == BODY )
 	{
+		std::string s = this->_chunkedBody.str();
+		s.append(ss.str());
+		this->_chunkedBody.str("");
+		this->_chunkedBody.clear();
+		this->_chunkedBody << s;
 		if (x == 0)
 		{
 			x++;
@@ -411,49 +401,43 @@ bool Request::mainParsingRequest(std::stringstream &ss)
 		return ( readLine(ss) );
 }
 
-int checkCRLF(std::string const & str, int len)
+int checkCRLF(std::string const & str, size_t i)
 {
-	int i = len;
-	if (str.size() >= 2 and str[i] == '\r' and str[i + 1] == '\n')
+	if (str.size() >= i + 2 and str[i] == '\r' and str[i + 1] == '\n')
 		return 2;
-	else if (str.size() >= 1 and str[i] == '\n')
+	else if (str.size() >= i + 1 and str[i] == '\n')
 		return 1;
 	else
 		return 0;
 }
-size_t pos = 0;
 
 bool Request::parsingChunked(std::stringstream &buffer)
 {
-	off_t len = 0;
-	if (not this->_chunkedTurn)
+	size_t pos = 0;
+	this->chunkSize = std::stoull(buffer.str(), nullptr, 16);
+
+	if (chunkSize == 0)
 	{
-		len = std::stoll(buffer.str(), 0, 16);
-		if (len == 0)
-		{
-			this->state = DONE;
-			return true;
-		}
-		_chunkedTurn = true;
+		this->state = DONE;
+		return true;
 	}
-	if (this->_chunkedTurn)
+	pos = buffer.str().find_first_of("\r\n", pos) + checkCRLF(buffer.str(), buffer.str().find_first_of("\r\n", pos));
+
+	int WR_size = write(this->file.WR_fd, buffer.str().substr(pos, chunkSize).c_str(), chunkSize);
+	_bodySize += WR_size;
+
+	if ( checkCRLF(buffer.str(), pos + chunkSize) == 0 )
 	{
-		std::stringstream ss;
-		ss << buffer.str().substr(buffer.str().find_first_of("\n") + 1);
-		len = std::min(len, (off_t)ss.str().size());
-		this->_body << ss.str().substr(0, len);
-		this->contentLength += len;
-		buffer.str( ss.str().substr(len + checkCRLF(ss.str(), len)) );
-		this->_chunkedTurn = false;
-		if (buffer.str().empty())
-			return false;
-		if (buffer.str() == "0\r\n\r\n" or buffer.str() == "0\n\n")
-		{
-			this->state = DONE;
-			return true;
-		}
-		if (isValidChunk(buffer.str()))
-			return parsingChunked(buffer);
+		this->status = BAD_REQUEST;
+		this->state = ERR;
+		return false;
 	}
+	pos += chunkSize + checkCRLF(buffer.str(), pos + chunkSize);
+
+
+	buffer.str(buffer.str().substr(pos));
+	if (isValidChunk(buffer.str()))
+		return parsingChunked(buffer);
+	else
 		return false;
 }
