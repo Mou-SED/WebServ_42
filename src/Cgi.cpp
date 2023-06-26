@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/25 18:24:14 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/26 01:09:16 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,15 +31,15 @@ Cgi::Cgi(Cgi const & src)
 
 Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location )
 {
-	(void)path;
 	std::vector<std::string> tmp = split(location->second["cgi_pass"][0], ' ', false);
 	setApp(tmp[0]);
 	setPath(tmp[1]);
+	std::cerr << "path file :" << req.file.path	<< std::endl;
 	this->_method = method;
 	this->_headers = req.getHeaders();
 	this->_query = getQuery(path);
 	this->_fileBody = req.file;
-	this->_sizeBody = sizeFile();
+	this->_sizeBody =req._bodySize;
 	this->state = stateStar;
 	this->bodySize = 0;
 	this->_status = req.status;
@@ -60,13 +60,13 @@ Cgi & Cgi::operator=(Cgi const & rhs)
 
 void	Cgi::createPipe(void)
 {
+	if (pipe(&this->fds[0]) == -1)
+		this->_status = INTERNAL_SERVER_ERROR;
 	if (this->_method == "POST")
 	{
 		if (pipe(&this->fds[2]) == -1)
 			this->_status = INTERNAL_SERVER_ERROR;
 	}
-	if (pipe(&this->fds[0]) == -1)
-		this->_status = INTERNAL_SERVER_ERROR;
 }
 
 int Cgi::execute(void)
@@ -86,14 +86,14 @@ int Cgi::execute(void)
 void Cgi::childProcess(void)
 {
 	std::cerr << "child process" << std::endl;
-	close(fds[SERVER_READ]);
 	dup2(fds[CGI_WRITE], 1);
+	close(fds[SERVER_READ]);
 	close(fds[CGI_WRITE]);
 	if (this->_method == "POST")
 	{
 		std::cerr << "hello\n";
-		close(fds[SERVER_WRITE]);
 		dup2(fds[CGI_READ], 0);
+		close(fds[SERVER_WRITE]);
 		close(fds[CGI_READ]);
 	}
 	setEnv();
@@ -108,9 +108,7 @@ void Cgi::childProcess(void)
 	args[1] = strdup(this->_path.c_str());
 	args[2] = NULL;
 	std::cerr << "execve : "<< args[0] << " " << args[1] << std::endl;
-	// chdir(this->_app.c_str());
-	for (int i = 0; env[i]; i++)
-		std::cerr << env[i] << std::endl;
+	chdir(this->_path.substr(0, this->_path.find_last_of('/')).c_str());
 	execve(args[0], args, env);
 	for (size_t i = 0; i < this->_env.size(); i++)
 		delete[] env[i];
@@ -133,23 +131,27 @@ void	Cgi::sendingBody( void )
 	time_t t = time(NULL);
 
 	close(fds[CGI_READ]);
-	int fd = open(this->_fileBody.path.c_str(), O_RDONLY);
 	char buffer[MYBUFSIZ] = {0};
 	int ret;
 	off_t size = 0;
-	std::cerr << sizeFile() << std::endl;
-	while (size < sizeFile())
+	std::cerr << this->_sizeBody << std::endl;
+	fcntl(fds[SERVER_WRITE], F_SETFL, O_NONBLOCK);
+	while (size < this->_sizeBody)
 	{
 		if (time(NULL) - t > 50)
 			throw std::runtime_error("CGI timeout");
-		ret = read(fd, buffer, MYBUFSIZ);
-		int bytes = write(fds[CGI_WRITE], buffer, ret);
+		ret = read(this->_fileBody.WR_fd, buffer, MYBUFSIZ);
+		std::cerr << "ret: " << ret << std::endl;
+		std::cerr << "buffer: " << buffer << std::endl;
+		int bytes = write(fds[SERVER_WRITE], buffer, ret);
+		std::cerr << "bytes: " << bytes << std::endl;
 		if (bytes > 0)
 			size += bytes;
 	}
-	if (fd > 3)
-		close(fd);
-	close(fds[CGI_WRITE]);
+	if (this->_fileBody.WR_fd > 3)
+		close(this->_fileBody.WR_fd);
+	close(fds[SERVER_WRITE]);
+	std::cerr << "cgi sending body done" << std::endl;
 }
 
 void	Cgi::addToHeaders(std::string &str)
@@ -166,8 +168,20 @@ void	Cgi::addToHeaders(std::string &str)
 		str = str.substr(i);
 		std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
 		std::vector<std::string> v = split(tmp, ':', false);
-		if (v.size() == 2)
+		if (v.size() == 2 and (v[0] == "content-length" or v[0] == "status" or v[0] == "location" or v[0] == "content-type" or v[0] == "set-cookie"))
+		{
+			if (v[0] == "content-length")
+				this->_sizeBody = std::stoi(v[1]);
+			if (v[0] == "status")
+				this->_status = std::stoi(v[1]);
+			if (v[0] == "location")
+				this->_location = v[1];
+			if (v[0] == "content-type")
+				this->_contentType = v[1];
+			if (v[0] == "set-cookie")
+				this->_setCookie = v[1];
 			this->_headers[v[0]] = v[1];
+		}
 	}
 	this->_body = str.substr(pos + 4);
 	str.clear();
@@ -179,8 +193,9 @@ void	Cgi::waitingChild( void )
 
 	while (time(nullptr) - t < 50)
 	{
-		if (waitpid(this->pid, &this->exStatus, 0) == this->pid)
+		if (waitpid(this->pid, &this->exStatus, 0) != 0)
 		{
+			std::cerr << "waiting child" << std::endl;
 			if ((WIFEXITED(this->exStatus) == true and WEXITSTATUS(this->exStatus) != EXIT_SUCCESS))
 				this->_status = BAD_GATEWAY;
 			return ;
@@ -193,29 +208,52 @@ void	Cgi::parentProcess( void )
 {
 	std::cerr << "parent process" << std::endl;
 	close(fds[CGI_WRITE]);
-	char buffer[4096];
+	char buffer[MYBUFSIZ] = {0};
 	int ret;
-	std::stringstream ss;
+	bool body = false;
+	time_t t = time(NULL);
 	try
 	{
 		if (this->_method == "POST")
 		{
 			std::cerr << "sending body" << std::endl;
 			sendingBody();
-			close(fds[CGI_READ]);
 		}
-		std::cerr << "reading" << std::endl;
+		// fcntl(fds[SERVER_READ], F_SETFL, O_NONBLOCK);
 		std::string str;
-		while ((ret = read(fds[SERVER_READ], buffer, 4096)) > 0)
+		while ( 1337 )
 		{
+			std::cerr << this->_body << std::endl;
+			if (this->_body.find("\r\n\r\n") != std::string::npos)
+					break;
+			std::cerr << "!!!reading cgi" << std::endl;
+			if (time(NULL) - t > 50)
+			{
+				this->_status = GATEWAY_TIME_OUT;
+				break;
+			}
+			ret = read(fds[SERVER_READ], buffer, MYBUFSIZ);
+			std::cerr << "--ret: " << ret << std::endl;
+			if (ret == 0 or ret == -1)
+				break;
 			str.append(buffer, ret);
-			if (str.find("\r\n\r\n") != std::string::npos)
+			if (str.find("\r\n\r\n") != std::string::npos and body == false)
+			{
+				body = true;
 				addToHeaders(str);
+			}
 			else
+			{
+				std::cerr << "is body" << std::endl;
 				this->_body.append(buffer, ret);
+			}
+			if (errno == EAGAIN)
+				break;
 		}
 		close(fds[SERVER_READ]);
+		std::cerr << "cgi read done" << std::endl;
 		waitingChild();
+		std::cerr << "waiting child done" << std::endl;
 	}
 	catch(const std::exception& e)
 	{
@@ -239,7 +277,11 @@ void Cgi::setEnv(void)
 	this->_env.push_back("SERVER_PROTOCOL=HTTP/1.1" );
 	this->_env.push_back("SERVER_SOFTWARE=WebServ/0.0.1" );
 	this->_env.push_back("GATEWAY_INTERFACE=CGI/1.1" );
-	// TODO Check Cookies;
+	this->_env.push_back("REMOTE_ADDR=" + this->_headers["Host"] );
+	this->_env.push_back("SCRIPT_FILENAME=" + this->_path );
+	if (this->_headers.find("HTTP_COOKIE") != this->_headers.end())
+		this->_env.push_back("HTTP_HTTP_COOKIE=" + this->_headers["HTTP_COOKIE"] );
+	this->_headers.clear();
 }
 
 void Cgi::setApp(std::string const &app)
@@ -324,9 +366,14 @@ std::string Cgi::getMethod(void) const
 	return this->_method;
 }
 
-std::map<std::string, std::string> Cgi::getHeaders(void) const
+std::string Cgi::getHeaders(void) const
 {
-	return this->_headers;
+	std::string headers;
+	for (std::map<std::string, std::string>::const_iterator it = this->_headers.begin(); it != this->_headers.end();++it)
+	{
+		headers += it->first + ": " + it->second + "\r\n";
+	}
+	return headers;
 }
 
 std::string Cgi::getBody(void) const
@@ -344,6 +391,23 @@ std::string Cgi::getQuery(std::string const &path) const
 	
 	return path.substr(path.find('?') + 1);
 }
+
+std::string Cgi::getCookie(void) const
+{
+	return this->_setCookie;
+}
+
+std::string Cgi::getLocation(void) const
+{
+	return this->_location;
+}
+
+std::string Cgi::getContentType(void) const
+{
+	return this->_contentType;
+}
+
+
 
 uint16_t Cgi::getStatus(void) const
 {

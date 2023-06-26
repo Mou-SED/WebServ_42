@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:08:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/25 18:18:36 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/26 00:56:04 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,9 @@ class Cgi{
 		uint16_t							_status;
 		off_t								_sizeBody;
 		std::string							_body;
+		std::string 						_location;
+		std::string 						_contentType;
+		std::string 						_setCookie;
 
 	public:
 		Cgi(void);
@@ -85,13 +88,18 @@ class Cgi{
 
 		std::string getPath(void) const;
 		std::string getMethod(void) const;
-		std::map<std::string, std::string> getHeaders(void) const;
+		std::string getHeaders(void) const;
 		std::string getHeaderString(void) const;
 		std::string getBody(void) const;
 		std::string getResponse(void) const;
 		std::string getQuery(std::string const &path) const;
 		uint16_t 	getStatus(void) const;
 		off_t 		getSizeBody(void) const;
+
+		std::string getCookie(void) const;
+		std::string getLocation(void) const;
+		std::string getContentType(void) const;
+
 
 		void generateResponse(void);
 		void clear(void);

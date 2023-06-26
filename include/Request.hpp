@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/24 00:09:51 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/25 21:28:56 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,13 +37,9 @@ struct File
 	}
 	File & operator=(File const & rhs)
 	{
-		if (this != &rhs)
-		{
-			this->name = rhs.name;
-			this->path = rhs.path;
-			this->file.open(rhs.path.c_str(), std::fstream::in | std::fstream::out | std::fstream::trunc);
-			this->WR_fd = rhs.WR_fd;
-		}
+		this->name = rhs.name;
+		this->path = rhs.path;
+		this->WR_fd = open(this->path.c_str(), O_RDWR, 0666);
 		return *this;
 	}
 	void createName( void );

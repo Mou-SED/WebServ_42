@@ -6,10 +6,10 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/25 20:38:35 by aaggoujj         ###   ########.fr       */
-/*   Updated: 2023/06/25 20:14:35 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/25 23:34:01 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
 
 #include "Request.hpp"
 
@@ -59,7 +59,7 @@ Request::~Request(void)
 {
 	if (file.path.size() > 0)
 	{
-		std::remove(file.path.c_str());
+		// std::remove(file.path.c_str());
 		file.file.close();
 		if (file.WR_fd > 2)
 			close(file.WR_fd);
@@ -68,6 +68,8 @@ Request::~Request(void)
 
 std::string Request::getMethod(void) const
 {
+	if (this->_method.empty())
+		return "";
 	return this->_method;
 }
 
@@ -167,7 +169,7 @@ Request & Request::operator=(Request const & rhs)
 		this->file.name = rhs.file.name;
 		this->file.path = rhs.file.path;
 		close(this->file.WR_fd);
-		this->file.WR_fd = open(this->file.path.c_str(), O_RDWR | O_CREAT, 0666);
+		this->file.WR_fd = open(this->file.path.c_str(), O_RDWR , 0666);
 	}
 
 	return *this;
@@ -352,7 +354,9 @@ bool Request::parsingBody(std::stringstream &buffer)
 	}
 	else
 	{
+		std::cerr <<"file name :" << this->file.path << std::endl;
 		int WR_size = write(this->file.WR_fd, buffer.str().c_str(), buffer.str().size());
+		std::cerr << "WR_size: " << WR_size << std::endl;
 		_bodySize += WR_size;
 		if (_bodySize == (off_t)this->contentLength)
 			this->state = DONE;
@@ -381,6 +385,7 @@ bool Request::mainParsingRequest(std::stringstream &ss)
 {
 	if ( this->state == BODY )
 	{
+		std::cerr << "BODY: "<< ss.str() << std::endl;
 		std::string s = this->_chunkedBody.str();
 		s.append(ss.str());
 		this->_chunkedBody.str("");
