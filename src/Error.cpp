@@ -41,7 +41,10 @@ Error::Error(uint16_t error, std::string error_page)
 
 Error::Error(const Error &src)
 {
-	*this = src;
+	this->_error = src._error;
+	this->_errorMessage = src._errorMessage;
+	this->_errorBody = src._errorBody;
+	this->_errorPage = src._errorPage;
 	return;
 }
 

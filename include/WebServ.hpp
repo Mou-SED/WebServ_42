@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/24 00:10:01 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/27 14:15:24 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,10 @@
 #include <iostream>
 #include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 #include <fstream>
 #include <vector>
 #include <algorithm>
@@ -34,9 +38,10 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
-#include <sys/event.h>
 #include <fcntl.h>
 #include <poll.h>
+#include <time.h>
+#include <iomanip>
 #include "Error.hpp"
 #include "dirent.h"
 #include "Utils.hpp"

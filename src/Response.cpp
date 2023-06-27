@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/26 00:55:57 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/27 14:44:57 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,10 @@ Response::Response( uint16_t status )
 Response::~Response( void )
 {
 	if (_bodySize > 0)
+	{
+		this->_bodySize = 0;
 		delete [] _buffer;
+	}
 	return ;
 }
 
@@ -401,6 +404,12 @@ off_t Response::getBodySize(void) const
 void Response::clear(void)
 {
 	this->_response.clear();
+	if (this->_bodySize > 0)
+	{
+		this->_bodySize = 0;
+		delete [] this->_buffer;
+	}
+	
 }
 
 std::pair<std::set<int>, std::string> getErrorPage(std::string &error_page)

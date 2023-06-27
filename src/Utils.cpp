@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/19 20:37:26 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/06/27 14:15:46 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,13 +168,13 @@ std::string const generateDirectory(std::string const &path)
                 ss << "\t\t\t\t<td>Directory</td>\n";
                 ss << "\t\t\t\t<td><a href=\"" << entry->d_name << "/\">" << entry->d_name << "/</a></td>\n";
                 ss << "\t\t\t\t<td></td>\n";
-                ss << "\t\t\t\t<td>" << std::put_time(std::gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
+                ss << "\t\t\t\t<td>" << std::put_time(gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
                 ss << "\t\t\t\t<td></td>\n";
             } else if (S_ISREG(fileStat.st_mode)) {
                 ss << "\t\t\t\t<td>File</td>\n";
                 ss << "\t\t\t\t<td><a href=\"" << entry->d_name << "\">" << entry->d_name << "</a></td>\n";
                 ss << "\t\t\t\t<td>" << fileStat.st_size << "</td>\n";
-                ss << "\t\t\t\t<td>" << std::put_time(std::gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
+                ss << "\t\t\t\t<td>" << std::put_time(gmtime(&fileStat.st_ctime), "%Y-%m-%d %H:%M:%S") << "</td>\n";
                 ss << "\t\t\t\t<td>" << std::string(entry->d_name).substr(std::string(entry->d_name).find_last_of(".") + 1) << "</td>\n";
             }
             ss << "\t\t\t</tr>\n";

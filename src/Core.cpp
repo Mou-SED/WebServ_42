@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/25 18:15:13 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/06/27 14:17:46 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,9 +15,14 @@
 std::pair<uint32_t, uint16_t> Core::getHostAndPort( std::string const & host, std::string const & port )
 {
 	const struct addrinfo hint = (struct addrinfo){
+		.ai_flags = 0,
 		.ai_family = AF_INET,
 		.ai_socktype = SOCK_STREAM,
-		.ai_protocol = 0
+		.ai_protocol = 0,
+		.ai_addrlen = 0,
+		.ai_addr = NULL,
+		.ai_canonname = NULL,
+		.ai_next = NULL,
 	};
 
 	struct addrinfo *res;
@@ -137,6 +142,7 @@ void Core::start( void )
 				this->_serversByFd.erase( currentFd );
 				this->_requests[currentFd].clear();
 				this->_requests.erase( currentFd );
+				this->_responses[currentFd].clear();
 				this->_responses.erase( currentFd );
 				close( currentFd );
 			}
@@ -181,9 +187,14 @@ void Core::bindServerSockets(void)
 		setsockopt( fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int) );
 
 		const struct addrinfo hint = (struct addrinfo){
+			.ai_flags = 0,
 			.ai_family = AF_INET,
 			.ai_socktype = SOCK_STREAM,
-			.ai_protocol = 0
+			.ai_protocol = 0,
+			.ai_addrlen = 0,
+			.ai_addr = NULL,
+			.ai_canonname = NULL,
+			.ai_next = NULL,
 		};
 
 		struct addrinfo *res;

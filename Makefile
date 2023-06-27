@@ -117,7 +117,7 @@ TEST_NAMES := WebServ
 # Example: unitName_DEP := dependency1 dependency2 ...
 # Note: Dependencies are written without any extension
 # Note: This can be omitted if the unit has no external dependencies
-webserv_DEP := CheckSyntax Core Error ParcingFile Request Tokenization UChar WebServ main 
+webserv_DEP := CheckSyntax Core Error ParcingFile Request Tokenization WebServ main 
 
 
 # ******************************* Test Targets *********************************
