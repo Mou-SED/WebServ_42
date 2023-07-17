@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/19 20:29:46 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/17 06:47:08 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "WebServ.hpp"
-#include "Tokenization.hpp"
-#include "Utils.hpp"
+#include "../include/WebServ.hpp"
+#include "../include/Tokenization.hpp"
+#include "../include/Utils.hpp"
 
 extern std::vector<std::string> type_value;
 

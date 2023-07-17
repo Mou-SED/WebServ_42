@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/25 23:34:01 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/17 06:47:03 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
-#include "Request.hpp"
+#include "../include/Request.hpp"
 
 void	checkHeaders(std::map<std::string, std::string> &headers)
 {

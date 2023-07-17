@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/26 01:09:16 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/17 09:49:06 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Cgi.hpp"
-#include "WebServ.hpp"
+#include "../include/Cgi.hpp"
+#include "../include/WebServ.hpp"
 
 Cgi::Cgi(void)
 {
@@ -60,11 +60,11 @@ Cgi & Cgi::operator=(Cgi const & rhs)
 
 void	Cgi::createPipe(void)
 {
-	if (pipe(&this->fds[0]) == -1)
+	if (pipe(&this->fds[SERVER_READ]) == -1)
 		this->_status = INTERNAL_SERVER_ERROR;
 	if (this->_method == "POST")
 	{
-		if (pipe(&this->fds[2]) == -1)
+		if (pipe(&this->fds[CGI_READ]) == -1)
 			this->_status = INTERNAL_SERVER_ERROR;
 	}
 }
@@ -72,7 +72,7 @@ void	Cgi::createPipe(void)
 int Cgi::execute(void)
 {
 	this->createPipe();
-	fcntl(fds[1], F_SETFL, O_NONBLOCK);
+	fcntl(fds[CGI_WRITE], F_SETFL, O_NONBLOCK);
 	this->pid = fork();
 	if (this->pid == -1)
 		return -1;
@@ -88,13 +88,12 @@ void Cgi::childProcess(void)
 	std::cerr << "child process" << std::endl;
 	dup2(fds[CGI_WRITE], 1);
 	close(fds[SERVER_READ]);
-	close(fds[CGI_WRITE]);
+	// close(fds[CGI_WRITE]);
 	if (this->_method == "POST")
 	{
-		std::cerr << "hello\n";
 		dup2(fds[CGI_READ], 0);
 		close(fds[SERVER_WRITE]);
-		close(fds[CGI_READ]);
+		// close(fds[CGI_READ]);
 	}
 	setEnv();
 	char **env = new char*[this->_env.size() + 1];
@@ -102,8 +101,6 @@ void Cgi::childProcess(void)
 		env[i] = strdup(this->_env[i].c_str());
 	env[this->_env.size()] = NULL;
 	char **args = new char*[3];
-	std::cerr << "path: " << this->_path << std::endl;
-	std::cerr << "app: " << this->_app << std::endl;
 	args[0] = strdup(this->_app.c_str());
 	args[1] = strdup(this->_path.c_str());
 	args[2] = NULL;
@@ -280,7 +277,7 @@ void Cgi::setEnv(void)
 	this->_env.push_back("REMOTE_ADDR=" + this->_headers["Host"] );
 	this->_env.push_back("SCRIPT_FILENAME=" + this->_path );
 	if (this->_headers.find("HTTP_COOKIE") != this->_headers.end())
-		this->_env.push_back("HTTP_HTTP_COOKIE=" + this->_headers["HTTP_COOKIE"] );
+		this->_env.push_back("HTTP_COOKIE=" + this->_headers["HTTP_COOKIE"] );
 	this->_headers.clear();
 }
 

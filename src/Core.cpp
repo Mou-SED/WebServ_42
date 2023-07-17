@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/27 14:17:46 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/17 10:49:39 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Core.hpp"
+#include "../include/Core.hpp"
+#include <cstring>
 
 std::pair<uint32_t, uint16_t> Core::getHostAndPort( std::string const & host, std::string const & port )
 {
@@ -260,21 +261,24 @@ void Core::sentGetResponse(int clientFd)
 		response.setRequest( request );
 		response.setErrorPages( request.getServer()->directives["error_page"] );
 		response.generateResponse();
+		std::cerr << response.getHeaders() << std::endl;
 		send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
 		if (response._Location != "")
 		{
 			this->_requests[clientFd].state = SENT;
 			return ;
 		}
-		if ( response.getStatus() < BAD_REQUEST and response._isDir == false)
+		if ( response.getStatus() < BAD_REQUEST and response._isDir == false and response._isCGI == false)
 		{
+			std::cerr << "Errrrrrrrrrrooorr\n";
 			response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
 			this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
 			memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
 			this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
 		}
 	}
-
+	std::cerr << "\\\\\\\\\\ \n" << std::endl;
+	std::cerr << "body = " << this->_responses[clientFd]._buffer << std::endl;
 	ssize_t sentBytes = send(
 		clientFd,
 		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,

@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/23 23:40:38 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/17 06:47:19 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "WebServ.hpp"
-#include "Core.hpp"
-#include "Tokenization.hpp"
+#include "../include/WebServ.hpp"
+#include "../include/Core.hpp"
+#include "../include/Tokenization.hpp"
 
 bool	webserv(const char *av)
 {

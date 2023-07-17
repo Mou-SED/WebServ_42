@@ -3,14 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/27 14:15:46 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/17 11:25:06 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Utils.hpp"
+#include <string>
 #include <sys/stat.h>
 
 std::vector<std::string> split(std::string const &str, char delim, bool keepDelim)
@@ -254,7 +255,9 @@ std::string getStatusMessage( uint16_t status )
 			return "Not Allowed";
 		case REQUEST_ENTITY_TOO_LARGE:
 			return "Request Entity Too Large";
+		case GATEWAY_TIME_OUT:
+			return "Gateway Time Out";
 		default:
-			throw std::runtime_error("Unknown status code");
+			throw std::runtime_error("Unknown status code" + std::to_string(status));
 	}
 }

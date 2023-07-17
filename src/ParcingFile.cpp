@@ -3,15 +3,15 @@
 /*                                                        :::      ::::::::   */
 /*   ParcingFile.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/26 10:38:14 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/17 06:47:01 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "WebServ.hpp"
-#include "Tokenization.hpp"
+#include "../include/WebServ.hpp"
+#include "../include/Tokenization.hpp"
 
 int  Check::num_line;
 std::set<std::string> Check::methods;

@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/27 14:44:57 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/17 10:08:13 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Response.hpp"
+#include "../include/Response.hpp"
 
 Response::Response( void )
 {
@@ -32,7 +32,7 @@ Response::~Response( void )
 	if (_bodySize > 0)
 	{
 		this->_bodySize = 0;
-		delete [] _buffer;
+		// delete [] _buffer;
 	}
 	return ;
 }
@@ -311,6 +311,7 @@ void Response::POST( std::pair<std::string, Directives > * location )
 	// TODO : Handle CGI
 	std::cerr << "POST" << std::endl;
 	// if file is CGI run it
+	this->_isCGI = true;
 	if (this->getUri().find("?") == std::string::npos)
 	{
 		Cgi cgi(this->getUri(), this->_request.getMethod(), this->_request, location);
@@ -352,8 +353,12 @@ void Response::POST( std::pair<std::string, Directives > * location )
 		Cgi cgi(this->getUri(), "GET", this->_request, location);
 		cgi.execute();
 		this->_status = cgi.getStatus();
+		std::cerr << "------------\n";
+		std::cerr << this->_status << std::endl;
 		this->_bodySize = cgi.getSizeBody();
+		std::cerr << "body size = " << this->_bodySize << std::endl;
 		this->_buffer = strdup(cgi.getBody().c_str());
+		std::cerr << "body = " << this->_buffer << std::endl;
 		this->_headers += "HTTP/1.1 ";
 		this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
 		this->_headers += "\r\n";
@@ -366,7 +371,7 @@ void Response::POST( std::pair<std::string, Directives > * location )
 		// 	return ;
 		// }
 		// this->_headers += cgi.getHeaders();
-		this->_headers += "Content-Type: " + cgi.getContentType() + "\r\n";
+		this->_headers += "Content-Type: text/html\r\n";
 		if (cgi.getLocation() != "")
 		this->_headers += "Location: " + cgi.getLocation() + "\r\n";
 		if (cgi.getCookie() != "")

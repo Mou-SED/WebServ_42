@@ -3,14 +3,14 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 21:45:12 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/05/09 14:20:55 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/17 06:46:57 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "WebServ.hpp"
+#include "../include/WebServ.hpp"
 
 int main(int ac, char **av)
 {

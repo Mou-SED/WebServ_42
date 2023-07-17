@@ -1,11 +1,4 @@
 import os
-import cgitb
-
-
-cgitb.enable()
-
-
-
 
 x = os.getenv("QUERY_STRING")
 
@@ -37,7 +30,7 @@ p {
 </head>
 <body>
 <h1>Hello, world!</h1>
-<p>This is a simple HTML file with CSS.</p>
+<p>This is a simple HTML for testing CGI</p>
 <p>This is your name = """ + name + """
 <p> This is your age = """ + str(age) + """
 <p> Your email = """ + email + """

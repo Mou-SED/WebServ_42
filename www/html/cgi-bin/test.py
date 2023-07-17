@@ -3,10 +3,10 @@ x = input("")
 
 x.split("&")
 
-fistname = x.split("&")[0].split("=")[1]
+First = x.split("&")[0].split("=")[1]
 age = x.split("&")[1].split("=")[1]
 
-fistname = fistname.replace("+", " ")
+First = First.replace("+", " ")
 
 a = """
 <!DOCTYPE html>
@@ -30,7 +30,7 @@ p {
 </head>
 <body>
 <h1>Hello, world!</h1>
-<p>This is your Fistname = """ + fistname + """
+<p>This is your First = """ + First + """
 <p> This is your age = """ + str(age) + """
 </body>
 </html>
