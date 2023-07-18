@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/18 10:05:36 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/18 14:07:57 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,15 +185,15 @@ bool checkHeaders(std::map<std::string, std::string> headers, std::string key)
 bool compareStr(std::string const &str1, std::string const &str2)
 {
 	if (str1.size() > str2.size() or str1.find_first_not_of("0123456789") != std::string::npos)
-		return false;
-	else if (str1.size() < str2.size())
 		return true;
+	else if (str1.size() < str2.size())
+		return false;
 	for (size_t i = 0; i < str1.size(); i++)
 	{
 		if (str1[i] > str2[i])
-			return false;
+			return true;
 	}
-	return true;
+	return false;
 }
 
 bool Request::parsingHeaders(std::vector<std::string> &tokens)
@@ -206,13 +206,13 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 
 		header = make_pair(
 			tokens[i].substr(0, tokens[i].find(":")),
-			trim(tokens[i].substr(tokens[i].find(":") + 1, tokens[i].find("\n") - tokens[i].find(":") - 1))
+			trim(tokens[i].substr(tokens[i].find(":") + 1, tokens[i].find_first_of("\r\n") - tokens[i].find(":") - 1))
 		);
 		std::transform(header.first.begin(), header.first.end(), header.first.begin(), ::tolower);
+		
 
 		if (tokens[i] != "\n" and tokens[i] != "\r\n"
-				and  ((header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first})
-				or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding")) or (tokens[i].find(":") == std::string::npos or tokens[i][tokens[i].find(":") - 1] == ' ' or (header.first == "content-length" and not compareStr(header.second, "2147483647")))))
+				and  ((header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first})) or (tokens[i].find(":") == std::string::npos or tokens[i][tokens[i].find(":") - 1] == ' ' or (header.first == "content-length" and compareStr(header.second, "2147483647")))))
 		{ // TODO : check headers can be duplicated in nginx.
 			this->status = BAD_REQUEST;
 			this->state = ERR;

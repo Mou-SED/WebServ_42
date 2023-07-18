@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 18:22:49 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/18 14:07:37 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,12 +83,13 @@ void Response::toStringGet( void )
 	this->_headers += "\r\n";
 	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_headers += "Date: " + getDate() + "\r\n";
-	// if (this->_Location != "")
-	// {
-	// 	this->_headers += "Location: " + this->_Location + "\r\n";
-	// 	this->_headers += "Connection: close\r\n\r\n";
-	// 	return ;
-	// }
+	if (this->_status >= MOVED_PERMANENTLY and this->_status <= TEMPORARY_REDIRECT)
+	{
+		if (this->_Location != "")
+			this->_headers += "Location: " + this->_Location + "\r\n";
+		else
+			this->_headers += "Location: " + this->getPath() + "\r\n";
+	}
 	this->_headers += "Accept-Ranges: bytes\r\n";
 	this->_headers += "Content-Type: " + this->_request.getContentType() + "\r\n";
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
@@ -119,6 +120,7 @@ void Response::toStringPut( void )
 
 bool	checking_extension(std::string const &Path, std::string const & cgi)
 {
+	std::cout << Path << std::endl;
 	std::string ext;
 	std::string extension = cgi.substr(0, cgi.find(" "));
 	if (Path.find("?") != std::string::npos)
@@ -151,22 +153,7 @@ void Response::generateResponse(void)
 		this->generateErrorResponse();
 		return ;
 	}
-
-	if ( not this->_request.getServer()->isLocationExist() )
-	{
-		std::string query = uri.substr(uri.find_first_of('?') + 1);
-		Cgi cgi;
-		cgi.setPath(path);
-		cgi.setApp("Python3");
-		cgi.execute();
-		this->_buffer = strdup(cgi.getResponse().c_str());
-		this->setBodySize(cgi.getResponse().length());
-		toString("text/html");
-		this->_isCGI = true;
-		return ;
-		// if (location->first == "cgi")
-	}
-
+	
 	if ( method == "POST" or checking_extension(getUri(), location->second["cgi_pass"][0]) ) POST( location );
 	else if ( method == "GET" ) GET( location );
 	else if ( method == "PUT" ) PUT();
@@ -190,6 +177,8 @@ bool	Response::redirection(std::string &path,std::string const & uri, std::pair<
 	else
 	{
 		path = this->_request.getServer()->getRoot() + ret[1] + uri;
+		this->setPath(ret[1]);
+		std::cerr << "path = " << path << std::endl;
 		return false;
 	}
 }
@@ -201,7 +190,7 @@ void Response::GET( std::pair<std::string, Directives > * location )
 		this->_status = NOT_FOUND;
 		goto GENERATE;
 	}
-	if (location->second.find("return") != location->second.end() and redirection(this->_path, this->getUri(), location))
+	if (location->second.find("return") != location->second.end() and not redirection(this->_path, this->getUri(), location))
 		goto GENERATE;
 	if ( isDirectory(this->_path) )
 	{
@@ -321,70 +310,42 @@ void Response::POST( std::pair<std::string, Directives > * location )
 {
 	this->_isCGI = true;
 	std::cerr << "pass = " << location->second["cgi_pass"][0] << std::endl;
+	std::string Methode;
 	if (this->getUri().find("?") == std::string::npos and this->_request.getMethod() == "POST")
-	{
-		std::cerr << "is Post @@@@" <<std::endl;
-		Cgi cgi(this->getUri(), this->_request.getMethod(), this->_request, location);
-		cgi.execute();
-		this->_status = cgi.getStatus();
-		if (this->_status >= BAD_REQUEST)
-		{
-			this->generateErrorResponse();
-			return ;
-		}
-		this->_bodySize = cgi.getSizeBody();
-		this->_buffer = strdup(cgi.getBody().c_str());
-		//*******************************************************************
-		this->_headers += "HTTP/1.1 ";
-		this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-		this->_headers += "\r\n";
-		this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
-		this->_headers += "Date: " + getDate() + "\r\n";
-		// if (this->_Location != "")
-		// {
-		// 	this->_headers += "Location: " + this->_Location + "\r\n";
-		// 	this->_headers += "Connection: close\r\n\r\n";
-		// 	return ;
-		// }
-		// this->_headers += cgi.getHeaders();
-		this->_headers += "Content-Type: " + cgi.getContentType() + "\r\n";
-		if (cgi.getLocation() != "")
-			this->_headers += "Location: " + cgi.getLocation() + "\r\n";
-		if (cgi.getCookie() != "")
-			this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
-		this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
-		this->_headers += "Connection: close\r\n\r\n";
-		// this->_headers.append(this->_buffer, this->_buffer + this->_bodySize);
-	}
+		Methode = "POST";
 	else
+		Methode = "GET";
+	Cgi cgi(this->getUri(), Methode, this->_request, location);
+	cgi.execute();
+	this->_status = cgi.getStatus();
+	if (this->_status >= BAD_REQUEST)
 	{
-		Cgi cgi(this->getUri(), "GET", this->_request, location);
-		cgi.execute();
-		this->_status = cgi.getStatus();
-		this->_bodySize = cgi.getSizeBody();
-
-		this->_buffer = strdup(cgi.getBody().c_str());
-		this->_headers += "HTTP/1.1 ";
-		this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-		this->_headers += "\r\n";
-		this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
-		this->_headers += "Date: " + getDate() + "\r\n";
-		// if (this->_Location != "")
-		// {
-		// 	this->_headers += "Location: " + this->_Location + "\r\n";
-		// 	this->_headers += "Connection: close\r\n\r\n";
-		// 	return ;
-		// }
-		// this->_headers += cgi.getHeaders();
-		this->_headers += "Content-Type: text/html\r\n";
-		if (cgi.getLocation() != "")
-			this->_headers += "Location: " + cgi.getLocation() + "\r\n";
-		if (cgi.getCookie() != "")
-			this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
-		this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
-		this->_headers += "Connection: close\r\n\r\n";
-
+		this->generateErrorResponse();
+		return ;
 	}
+	this->_bodySize = cgi.getSizeBody();
+	this->_buffer = strdup(cgi.getBody().c_str());
+	//*******************************************************************
+	this->_headers += "HTTP/1.1 ";
+	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
+	this->_headers += "\r\n";
+	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
+	this->_headers += "Date: " + getDate() + "\r\n";
+	// if (this->_Location != "")
+	// {
+	// 	this->_headers += "Location: " + this->_Location + "\r\n";
+	// 	this->_headers += "Connection: close\r\n\r\n";
+	// 	return ;
+	// }
+	// this->_headers += cgi.getHeaders();
+	this->_headers += "Content-Type: " + cgi.getContentType() + "\r\n";//generateContentType(this->_path) + "\r\n";
+	if (cgi.getLocation() != "")
+		this->_headers += "Location: " + cgi.getLocation() + "\r\n";
+	if (cgi.getCookie() != "")
+		this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
+	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
+	this->_headers += "Connection: close\r\n\r\n";
+	// this->_headers.append(this->_buffer, this->_buffer + this->_bodySize);
 	// 	GET( location );
 }
 
@@ -419,7 +380,7 @@ void Response::clear(void)
 		this->_bodySize = 0;
 		delete [] this->_buffer;
 	}
-	
+
 }
 
 std::pair<std::set<int>, std::string> getErrorPage(std::string &error_page)

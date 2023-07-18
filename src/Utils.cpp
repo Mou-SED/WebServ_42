@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/18 07:33:46 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/18 13:11:15 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -259,6 +259,8 @@ std::string getStatusMessage( uint16_t status )
 			return "Gateway Time Out";
 		case REQUEST_URI_TOO_LARGE:
 			return "Request URI Too Large";
+		case TEMPORARY_REDIRECT:
+			return "Temporary Redirect";
 		default:
 			throw std::runtime_error("Unknown status code" + std::to_string(status));
 	}

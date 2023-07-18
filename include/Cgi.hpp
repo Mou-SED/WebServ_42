@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:08:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 17:19:32 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/18 11:55:09 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,7 @@ class Cgi{
 		void	setHeaders(std::map<std::string, std::string>& headers);
 		void	addHeader(std::string & key, std::string & value);
 
-		void	addToHeaders(std::string &str);
+		void	addToHeaders(std::string &str, bool &body);
 		off_t	sizeFile( void );
 		void	createPipe(void);
 

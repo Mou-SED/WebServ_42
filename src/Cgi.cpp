@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/18 06:49:34 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/18 12:55:27 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -159,22 +159,23 @@ void	Cgi::sendingBody( void )
 	std::cerr << "cgi sending body done" << std::endl;
 }
 
-void	Cgi::addToHeaders(std::string &str)
+void	Cgi::addToHeaders(std::string &str, bool &body)
 {
 	size_t pos = str.find("\r\n\r\n");
 	size_t i = 0;
 	while (i < pos)
 	{
-		i = str.find("\r\n", i);
-		if (i == std::string::npos)
+		i = str.find("\r\n");
+		std::cerr << "i = " << i << std::endl;
+		if (i == std::string::npos or i == 0)
 			break;
-		i += 2;
 		std::string tmp = str.substr(0, i);
-		std::cout << ">> " << tmp << std::endl;
+		i += 2;
 		str = str.substr(i);
+		std::cout << ">> " << tmp << " str = " << str << pos << " " << i << " " << std::endl;
 		std::vector<std::string> v(2);
 		v[0] = tmp.substr(0, tmp.find(":"));
-		v[1] = trim(tmp.substr(tmp.find(":") + 2), "\r\n");
+		v[1] = tmp.substr(tmp.find(":") + 2);
 		if (v[0] == "Content-Length")
 			this->_sizeBody = std::stoi(v[1]), this->_headers[v[0]] = v[1];
 		else if (v[0] == "Status")
@@ -186,8 +187,10 @@ void	Cgi::addToHeaders(std::string &str)
 		else if (v[0] == "Set-Cookie")
 			this->_setCookie = v[1], this->_headers[v[0]] = v[1];
 	}
+	if (str.find("\r\n\r\n") != std::string::npos)
+		body = true;
 	this->_body = str.substr(str.find("\r\n\r\n") + 3);
-	str.clear();
+	// str.clear();
 }
 
 void	Cgi::waitingChild( void )
@@ -239,7 +242,7 @@ void	Cgi::parentProcess( void )
 			if (this->_body.find("\r\n\r\n") != std::string::npos)
 					break;
 			std::cerr << "!!!reading cgi " << time(NULL) - t << std::endl;
-			if (time(NULL) - t > 5)
+			if (time(NULL) - t > 10)
 			{
 				this->_status = GATEWAY_TIME_OUT;
 				break;
@@ -254,8 +257,7 @@ void	Cgi::parentProcess( void )
 			str.append(buffer, ret);
 			if (str.find("\r\n\r\n") != std::string::npos and body == false)
 			{
-				body = true;
-				addToHeaders(str);
+				addToHeaders(str, body);
 			}
 			else
 			{
@@ -273,6 +275,7 @@ void	Cgi::parentProcess( void )
 	}
 	catch(const std::exception& e)
 	{
+		std::cerr << "++++++++++++++++\n";
 		kill(this->pid, SIGKILL);
 		this->_status = GATEWAY_TIME_OUT;
 		return ;
@@ -414,11 +417,14 @@ std::string Cgi::getCookie(void) const
 
 std::string Cgi::getLocation(void) const
 {
+	std::cerr << "Location = " << this->_location << std::endl;
 	return this->_location;
 }
 
 std::string Cgi::getContentType(void) const
 {
+	if (this->_contentType.empty())
+		return "text/html";
 	return this->_contentType;
 }
 
