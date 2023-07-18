@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/17 06:47:03 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/18 10:05:36 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 void	checkHeaders(std::map<std::string, std::string> &headers)
 {
 	if (headers["host"].empty())
-		throw std::runtime_error("Host header is missing");
+		std::cerr << "Host header is missing" << std::endl;//TODO 
 }
 
 void File::createName( void )
@@ -181,6 +181,20 @@ bool checkHeaders(std::map<std::string, std::string> headers, std::string key)
 		return false;
 	return true;
 }
+// content length should be less than 2147483647
+bool compareStr(std::string const &str1, std::string const &str2)
+{
+	if (str1.size() > str2.size() or str1.find_first_not_of("0123456789") != std::string::npos)
+		return false;
+	else if (str1.size() < str2.size())
+		return true;
+	for (size_t i = 0; i < str1.size(); i++)
+	{
+		if (str1[i] > str2[i])
+			return false;
+	}
+	return true;
+}
 
 bool Request::parsingHeaders(std::vector<std::string> &tokens)
 {
@@ -192,13 +206,13 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 
 		header = make_pair(
 			tokens[i].substr(0, tokens[i].find(":")),
-			tokens[i].substr(tokens[i].find(":") + 1, tokens[i].find("\n") - tokens[i].find(":") - 1)
+			trim(tokens[i].substr(tokens[i].find(":") + 1, tokens[i].find("\n") - tokens[i].find(":") - 1))
 		);
 		std::transform(header.first.begin(), header.first.end(), header.first.begin(), ::tolower);
 
-		if ((tokens[i] != "\n" and tokens[i] != "\r\n"
-				and  (header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first})
-				or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding"))))
+		if (tokens[i] != "\n" and tokens[i] != "\r\n"
+				and  ((header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first})
+				or not checkHeaders(this->_headers, "content-length") or not checkHeaders(this->_headers, "transfer-encoding")) or (tokens[i].find(":") == std::string::npos or tokens[i][tokens[i].find(":") - 1] == ' ' or (header.first == "content-length" and not compareStr(header.second, "2147483647")))))
 		{ // TODO : check headers can be duplicated in nginx.
 			this->status = BAD_REQUEST;
 			this->state = ERR;
@@ -259,7 +273,12 @@ bool Request::parsingStartLine(std::vector<std::string> &tokens)
 {
 	remove_end(tokens[0], "\r\n");
 	std::vector<std::string> requestLine = split(tokens[0], ' ', false);
-
+	if (tokens[0].size() > 2048)
+	{
+		this->status = REQUEST_URI_TOO_LARGE;
+		this->state = ERR;
+		return false;
+	}
 	if (requestLine.size() != 3 or not checkMethod(requestLine[0])) // TODO : check method should return another error (METHOD_NOT_IMPLEMENTED)
 	{
 		if ( requestLine[0] == "OPTIONS" or requestLine[0] == "HEAD" or requestLine[0] == "PATCH" )
