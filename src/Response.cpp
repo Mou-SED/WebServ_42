@@ -6,7 +6,7 @@
 /*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 10:08:13 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/17 18:22:49 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,6 +117,19 @@ void Response::toStringPut( void )
 	this->_headers += "Connection: close\r\n\r\n";
 }
 
+bool	checking_extension(std::string const &Path, std::string const & cgi)
+{
+	std::string ext;
+	std::string extension = cgi.substr(0, cgi.find(" "));
+	if (Path.find("?") != std::string::npos)
+		ext = Path.substr(Path.find(".") + 1, Path.find("?") - Path.find(".") - 1);
+	else
+	 	ext = Path.substr(Path.find(".") + 1);
+	std::cerr << "ext = "  << ext << std::endl;
+	std::cerr << "extension = " << extension << std::endl;
+	return (ext == extension);
+}
+
 void Response::generateResponse(void)
 {
 	std::string method = this->_request.getMethod();
@@ -142,12 +155,10 @@ void Response::generateResponse(void)
 	if ( not this->_request.getServer()->isLocationExist() )
 	{
 		std::string query = uri.substr(uri.find_first_of('?') + 1);
-		std::cerr << "QUERY: " << query << std::endl;
 		Cgi cgi;
 		cgi.setPath(path);
 		cgi.setApp("Python3");
 		cgi.execute();
-		std::cerr << "RESPONSE: " << cgi.getResponse() << std::endl;
 		this->_buffer = strdup(cgi.getResponse().c_str());
 		this->setBodySize(cgi.getResponse().length());
 		toString("text/html");
@@ -156,7 +167,7 @@ void Response::generateResponse(void)
 		// if (location->first == "cgi")
 	}
 
-	if ( method == "POST" or getUri().find("?") != std::string::npos ) POST( location );
+	if ( method == "POST" or checking_extension(getUri(), location->second["cgi_pass"][0]) ) POST( location );
 	else if ( method == "GET" ) GET( location );
 	else if ( method == "PUT" ) PUT();
 	else if ( method == "DELETE" ) DELETE();
@@ -305,15 +316,14 @@ void Response::PUT( void )
 		this->toStringPut();
 }
 
+
 void Response::POST( std::pair<std::string, Directives > * location )
 {
-	(void)location;
-	// TODO : Handle CGI
-	std::cerr << "POST" << std::endl;
-	// if file is CGI run it
 	this->_isCGI = true;
-	if (this->getUri().find("?") == std::string::npos)
+	std::cerr << "pass = " << location->second["cgi_pass"][0] << std::endl;
+	if (this->getUri().find("?") == std::string::npos and this->_request.getMethod() == "POST")
 	{
+		std::cerr << "is Post @@@@" <<std::endl;
 		Cgi cgi(this->getUri(), this->_request.getMethod(), this->_request, location);
 		cgi.execute();
 		this->_status = cgi.getStatus();
@@ -339,26 +349,21 @@ void Response::POST( std::pair<std::string, Directives > * location )
 		// this->_headers += cgi.getHeaders();
 		this->_headers += "Content-Type: " + cgi.getContentType() + "\r\n";
 		if (cgi.getLocation() != "")
-		this->_headers += "Location: " + cgi.getLocation() + "\r\n";
+			this->_headers += "Location: " + cgi.getLocation() + "\r\n";
 		if (cgi.getCookie() != "")
-		this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
+			this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
 		this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
 		this->_headers += "Connection: close\r\n\r\n";
 		// this->_headers.append(this->_buffer, this->_buffer + this->_bodySize);
 	}
 	else
 	{
-		std::cerr << "CGI" << std::endl;
-		std::cerr << this->getUri() << std::endl;
 		Cgi cgi(this->getUri(), "GET", this->_request, location);
 		cgi.execute();
 		this->_status = cgi.getStatus();
-		std::cerr << "------------\n";
-		std::cerr << this->_status << std::endl;
 		this->_bodySize = cgi.getSizeBody();
-		std::cerr << "body size = " << this->_bodySize << std::endl;
+
 		this->_buffer = strdup(cgi.getBody().c_str());
-		std::cerr << "body = " << this->_buffer << std::endl;
 		this->_headers += "HTTP/1.1 ";
 		this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
 		this->_headers += "\r\n";
@@ -373,9 +378,9 @@ void Response::POST( std::pair<std::string, Directives > * location )
 		// this->_headers += cgi.getHeaders();
 		this->_headers += "Content-Type: text/html\r\n";
 		if (cgi.getLocation() != "")
-		this->_headers += "Location: " + cgi.getLocation() + "\r\n";
+			this->_headers += "Location: " + cgi.getLocation() + "\r\n";
 		if (cgi.getCookie() != "")
-		this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
+			this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
 		this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
 		this->_headers += "Connection: close\r\n\r\n";
 

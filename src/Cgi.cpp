@@ -6,12 +6,15 @@
 /*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 09:49:06 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/18 06:49:34 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/Cgi.hpp"
 #include "../include/WebServ.hpp"
+#include <string>
+#include <unistd.h>
+#include <vector>
 
 Cgi::Cgi(void)
 {
@@ -31,9 +34,11 @@ Cgi::Cgi(Cgi const & src)
 
 Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location )
 {
+	std::cerr << "rooooot = " << location->second["root"][0] + path.substr(0, path.find_first_of("?")) << std::endl;//TODO checking root if founded
 	std::vector<std::string> tmp = split(location->second["cgi_pass"][0], ' ', false);
-	setApp(tmp[0]);
-	setPath(tmp[1]);
+	setApp(tmp[1]);
+	setPath(location->second["root"][0] + path.substr(0, path.find_first_of("?")));
+	std::cerr << "Path -> " << getPath() << std::endl;
 	std::cerr << "path file :" << req.file.path	<< std::endl;
 	this->_method = method;
 	this->_headers = req.getHeaders();
@@ -102,10 +107,13 @@ void Cgi::childProcess(void)
 	env[this->_env.size()] = NULL;
 	char **args = new char*[3];
 	args[0] = strdup(this->_app.c_str());
-	args[1] = strdup(this->_path.c_str());
+	args[1] = strdup(this->_path.substr(this->_path.find_last_of("/") + 1).c_str());
 	args[2] = NULL;
-	std::cerr << "execve : "<< args[0] << " " << args[1] << std::endl;
-	chdir(this->_path.substr(0, this->_path.find_last_of('/')).c_str());
+	std::cerr << "execve : "<< args[0] << "$ $" << args[1] << "$" << std::endl;
+	std::cerr << "chdir = " << this->_path.substr(0, this->_path.find_last_of('/')) << std::endl;
+	if (chdir(this->_path.substr(0, this->_path.find_last_of('/')).c_str()) != 0)
+		std::cerr << "Erroor\n";
+	std::cerr << "pwd : " << getcwd(NULL, 0) << std::endl;
 	execve(args[0], args, env);
 	for (size_t i = 0; i < this->_env.size(); i++)
 		delete[] env[i];
@@ -162,41 +170,49 @@ void	Cgi::addToHeaders(std::string &str)
 			break;
 		i += 2;
 		std::string tmp = str.substr(0, i);
+		std::cout << ">> " << tmp << std::endl;
 		str = str.substr(i);
-		std::transform(tmp.begin(), tmp.end(), tmp.begin(), ::tolower);
-		std::vector<std::string> v = split(tmp, ':', false);
-		if (v.size() == 2 and (v[0] == "content-length" or v[0] == "status" or v[0] == "location" or v[0] == "content-type" or v[0] == "set-cookie"))
-		{
-			if (v[0] == "content-length")
-				this->_sizeBody = std::stoi(v[1]);
-			if (v[0] == "status")
-				this->_status = std::stoi(v[1]);
-			if (v[0] == "location")
-				this->_location = v[1];
-			if (v[0] == "content-type")
-				this->_contentType = v[1];
-			if (v[0] == "set-cookie")
-				this->_setCookie = v[1];
-			this->_headers[v[0]] = v[1];
-		}
+		std::vector<std::string> v(2);
+		v[0] = tmp.substr(0, tmp.find(":"));
+		v[1] = trim(tmp.substr(tmp.find(":") + 2), "\r\n");
+		if (v[0] == "Content-Length")
+			this->_sizeBody = std::stoi(v[1]), this->_headers[v[0]] = v[1];
+		else if (v[0] == "Status")
+			this->_status = std::stoi(v[1]), this->_headers[v[0]] = v[1];
+		else if (v[0] == "Location")
+			this->_location = v[1], this->_headers[v[0]] = v[1];
+		else if (v[0] == "Content-Type")
+			this->_contentType = v[1], this->_headers[v[0]] = v[1];
+		else if (v[0] == "Set-Cookie")
+			this->_setCookie = v[1], this->_headers[v[0]] = v[1];
 	}
-	this->_body = str.substr(pos + 4);
+	this->_body = str.substr(str.find("\r\n\r\n") + 3);
 	str.clear();
 }
 
 void	Cgi::waitingChild( void )
 {
-	time_t t = time(NULL);
+	int t = time(NULL);
 
-	while (time(nullptr) - t < 50)
+	int now = time(NULL);
+	while (now - t < 5)
 	{
-		if (waitpid(this->pid, &this->exStatus, 0) != 0)
+		int ret = waitpid(this->pid, &this->exStatus, WNOHANG | WUNTRACED);
+		if (ret == -1)
 		{
+			  if (errno != EAGAIN && errno != EWOULDBLOCK)
+			  	return ;
 			std::cerr << "waiting child" << std::endl;
+		}
+		else {
+		{
 			if ((WIFEXITED(this->exStatus) == true and WEXITSTATUS(this->exStatus) != EXIT_SUCCESS))
 				this->_status = BAD_GATEWAY;
 			return ;
 		}
+		}
+		
+		now = time(NULL);
 	}
 	this->_status = GATEWAY_TIME_OUT;
 }
@@ -216,20 +232,22 @@ void	Cgi::parentProcess( void )
 			std::cerr << "sending body" << std::endl;
 			sendingBody();
 		}
-		// fcntl(fds[SERVER_READ], F_SETFL, O_NONBLOCK);
 		std::string str;
 		while ( 1337 )
 		{
 			std::cerr << this->_body << std::endl;
 			if (this->_body.find("\r\n\r\n") != std::string::npos)
 					break;
-			std::cerr << "!!!reading cgi" << std::endl;
-			if (time(NULL) - t > 50)
+			std::cerr << "!!!reading cgi " << time(NULL) - t << std::endl;
+			if (time(NULL) - t > 5)
 			{
 				this->_status = GATEWAY_TIME_OUT;
 				break;
 			}
-			ret = read(fds[SERVER_READ], buffer, MYBUFSIZ);
+			if (errno == EAGAIN || errno == EWOULDBLOCK)
+				break;
+			ret = ::read(fds[SERVER_READ], buffer, MYBUFSIZ);
+			std::cerr << "heeey\n";
 			std::cerr << "--ret: " << ret << std::endl;
 			if (ret == 0 or ret == -1)
 				break;
@@ -244,9 +262,10 @@ void	Cgi::parentProcess( void )
 				std::cerr << "is body" << std::endl;
 				this->_body.append(buffer, ret);
 			}
-			if (errno == EAGAIN)
+			if (this->_body.find("\r\n\r\n") != std::string::npos or this->_body.find("\n\n") != std::string::npos)
 				break;
 		}
+		
 		close(fds[SERVER_READ]);
 		std::cerr << "cgi read done" << std::endl;
 		waitingChild();
@@ -263,22 +282,20 @@ void	Cgi::parentProcess( void )
 void Cgi::setEnv(void)
 {
 	this->_env.push_back("REQUEST_METHOD=" + this->_method );
-	this->_env.push_back("CONTENT_LENGTH=10000" );
+	this->_env.push_back("CONTENT_LENGTH=" + std::to_string(this->_sizeBody));
 	this->_env.push_back("CONTENT_TYPE=" + this->_headers["Content-Type"] );
 	this->_env.push_back("QUERY_STRING=" + this->_query );
-	this->_env.push_back("PATH_INFO=" + this->_path );
 	this->_env.push_back("REDIRECT_STATUS=200" );
-	this->_env.push_back("SCRIPT_NAME=" + this->_app );
 	this->_env.push_back("SERVER_NAME=" + this->_headers["Host"] );
 	this->_env.push_back("SERVER_PORT=" + this->_headers["Host"] );
 	this->_env.push_back("SERVER_PROTOCOL=HTTP/1.1" );
 	this->_env.push_back("SERVER_SOFTWARE=WebServ/0.0.1" );
 	this->_env.push_back("GATEWAY_INTERFACE=CGI/1.1" );
 	this->_env.push_back("REMOTE_ADDR=" + this->_headers["Host"] );
-	this->_env.push_back("SCRIPT_FILENAME=" + this->_path );
-	if (this->_headers.find("HTTP_COOKIE") != this->_headers.end())
-		this->_env.push_back("HTTP_COOKIE=" + this->_headers["HTTP_COOKIE"] );
-	this->_headers.clear();
+	std::cerr << "sript  = " << this->_path.substr(this->_path.find_last_of("/") + 1) << std::endl;
+	this->_env.push_back("SCRIPT_FILENAME=" + this->_path.substr(this->_path.find_last_of("/") + 1));
+	if (this->_headers.find("cookie") != this->_headers.end())
+		this->_env.push_back("HTTP_COOKIE=" + this->_headers["cookie"] );
 }
 
 void Cgi::setApp(std::string const &app)
@@ -289,7 +306,7 @@ void Cgi::setApp(std::string const &app)
 
 void Cgi::setPath(std::string const & path)
 {
-	if (access(path.c_str(), F_OK) == -1)
+ 	if (access(path.c_str(), F_OK) == -1)
 		throw std::runtime_error("file not found");
 	this->_path = path;
 }
@@ -391,6 +408,7 @@ std::string Cgi::getQuery(std::string const &path) const
 
 std::string Cgi::getCookie(void) const
 {
+	std::cerr << "Cookie = " << this->_setCookie << std::endl;
 	return this->_setCookie;
 }
 

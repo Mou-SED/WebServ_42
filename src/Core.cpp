@@ -6,7 +6,7 @@
 /*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/17 10:49:39 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/17 17:59:01 by junik            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,8 +277,6 @@ void Core::sentGetResponse(int clientFd)
 			this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
 		}
 	}
-	std::cerr << "\\\\\\\\\\ \n" << std::endl;
-	std::cerr << "body = " << this->_responses[clientFd]._buffer << std::endl;
 	ssize_t sentBytes = send(
 		clientFd,
 		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
