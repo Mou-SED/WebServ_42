@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 11:31:03 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 13:43:28 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,13 +29,23 @@ Cgi::Cgi(Cgi const & src)
 	return;
 }
 
+std::string getMatching(std::string const & s1, std::string const & s2)
+{
+	for (long i = s2.size() - 1; i >= 0; i--)
+	{
+		if (s1.find(s2.substr(0, i)) != std::string::npos and s2.substr(0, i).size() > 1)
+			return s1.substr(0, s1.find(s2.substr(0, i))) + s2.substr(0, i) + s2.substr(i);
+	}
+	return s1+s2;
+}
+
 Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location )
 {
 	std::vector<std::string> tmp = split(location->second["cgi_pass"][0], ' ', false);
 	
 	try{
 		setApp(tmp[1]);
-		setPath(location->second["root"][0] + path.substr(0, path.find_first_of("?")));
+		setPath(getMatching(location->second["root"][0] , path.substr(0, path.find_first_of("?"))));
 		this->_method = method;
 		setFds(method);
 		this->_headers = req.getHeaders();
@@ -127,7 +137,7 @@ void Cgi::childProcess(void)
 		delete[] env[i];
 	delete[] env;
 	std::cerr << "execve failed: " << args[0] << " " << args[1] << std::endl;
-	delete[] args[0]; 
+	delete[] args[0];
 	delete[] args[1];
 	delete[] args;
 	exit(1);

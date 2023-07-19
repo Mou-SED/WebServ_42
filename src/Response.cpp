@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 10:30:59 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 13:43:59 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,8 +126,9 @@ bool	checking_extension(std::string const &Path, std::string const & cgi)
 {
 	std::string ext;
 	std::string extension = cgi.substr(0, cgi.find(" "));
-	if (Path.find("?") != std::string::npos)
-		ext = Path.substr(Path.find(".") + 1, Path.find("?") - Path.find(".") - 1);
+	size_t pos = Path.find("?");
+	if (pos != std::string::npos)
+		ext = Path.substr(Path.find_last_of(".", pos) + 1,pos - Path.find_last_of(".", pos) - 1);
 	else
 	 	ext = Path.substr(Path.find(".") + 1);
 	return (ext == extension);
@@ -154,7 +155,6 @@ void Response::generateResponse(void)
 		this->generateErrorResponse();
 		return ;
 	}
-	
 	if ( method == "POST" or checking_extension(getUri(), location->second["cgi_pass"][0]) ) POST( location );
 	else if ( method == "GET" ) GET( location );
 	else if ( method == "PUT" ) PUT();
