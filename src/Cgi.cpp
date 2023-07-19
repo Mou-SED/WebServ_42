@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/18 19:08:00 by ayassir          ###   ########.fr       */
+/*   Updated: 2023/07/19 09:42:45 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,15 +95,14 @@ int Cgi::execute(void)
 
 void Cgi::childProcess(void)
 {
-	std::cerr << "child process" << std::endl;
 	dup2(fds[CGI_WRITE], 1);
 	close(fds[SERVER_READ]);
-	// close(fds[CGI_WRITE]);
+	close(fds[CGI_WRITE]);
 	if (this->_method == "POST")
 	{
 		dup2(fds[CGI_READ], 0);
 		close(fds[SERVER_WRITE]);
-		// close(fds[CGI_READ]);
+		close(fds[CGI_READ]);
 	}
 	setEnv();
 	char **env = new char*[this->_env.size() + 1];
@@ -114,11 +113,8 @@ void Cgi::childProcess(void)
 	args[0] = strdup(this->_app.c_str());
 	args[1] = strdup(this->_path.substr(this->_path.find_last_of("/") + 1).c_str());
 	args[2] = NULL;
-	std::cerr << "execve : "<< args[0] << "$ $" << args[1] << "$" << std::endl;
-	std::cerr << "chdir = " << this->_path.substr(0, this->_path.find_last_of('/')) << std::endl;
 	if (chdir(this->_path.substr(0, this->_path.find_last_of('/')).c_str()) != 0)
-		std::cerr << "Erroor\n";
-	std::cerr << "pwd : " << getcwd(NULL, 0) << std::endl;
+		exit(1);
 	execve(args[0], args, env);
 	for (size_t i = 0; i < this->_env.size(); i++)
 		delete[] env[i];
@@ -158,7 +154,6 @@ void	Cgi::sendingBody( void )
 	if (this->_fileBody.WR_fd > 3)
 		close(this->_fileBody.WR_fd);
 	close(fds[SERVER_WRITE]);
-	std::cout << "CGI : sending body is done.\n";
 }
 
 void	Cgi::addToHeaders(std::string &str, bool &body)
@@ -257,7 +252,6 @@ void	Cgi::parentProcess( void )
 		}
 		
 		close(fds[SERVER_READ]);
-		std::cout << "CGI : reading is done" << std::endl;
 		waitingChild();
 	}
 	catch(const std::exception& e)
