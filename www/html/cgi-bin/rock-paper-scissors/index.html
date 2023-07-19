@@ -1,0 +1,63 @@
+<html>
+<head>
+<title>Rock, Paper, Scissors</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tektur&display=swap" rel="stylesheet">
+</head>
+<body>
+<h1>Rock - Paper - Scissors</h1>
+
+  <form>
+    <div id="game-container">
+      <div class="choice-container">
+        <label class="choice-label" for="rock"><img src="rock.png" alt="Rock" width="106" height="106"></label>
+        <input class="choice" type="radio" name="choice" value="rock" id="rock" >
+      </div>
+
+      <div class="choice-container">
+        <label class="choice-label selected-choice" for="paper"><img src="paper.png" alt="Paper" width="106" height="106"></label>
+        <input class="choice" type="radio" name="choice" value="paper" id="paper" checked>
+      </div>
+      
+      <div class="choice-container">
+        <label class="choice-label" for="scissors"><img src="scisser.png" alt="Scissors" width="106" height="106"></label>
+        <input class="choice" type="radio" name="choice" value="scissors" id="scissors">
+      </div>
+    </div>
+
+    <button type="submit">Play</button>
+  </form>
+
+  <table id="choices">
+    <tr>
+      <th>You</th>
+      <th>Computer</th>
+    </tr>
+    <tr>
+      <td>
+        <img id="user-choice" src="unknown.png" alt="unknown" title="unknown" width="106" height="106">
+      </td>
+      <td >
+        <img id="computer-choice" src="unknown.png" alt="unknown" title="unknown" width="106" height="106">
+      </td>
+    </tr>
+  </table>
+  <img id="status" src="normal.jpg" alt="status" title="status">
+  <table id="score-board">
+    <tr>
+      <th>Wins</th>
+      <th>Ties</th>
+      <th>Losses</th>
+    </tr>
+    <tr>
+      <td id="wins">0</td>
+      <td id="ties">0</td>
+      <td id="losses">0</td>
+    </tr>
+  </table>
+  
+<script src="main.js"></script>
+</body>
+</html>
