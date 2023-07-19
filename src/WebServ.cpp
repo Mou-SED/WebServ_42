@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 10:24:54 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 13:24:12 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,13 +14,13 @@
 #include "../include/Core.hpp"
 #include "../include/Tokenization.hpp"
 
-bool	webserv(const char *av)
+void	webserv(const char *av)
 {
 	std::vector<Server> servers;
 	std::string s(av);
 	std::ifstream file(s);
 	if (not file.is_open() or not parcing(file, s))
-		throw std::runtime_error("Error");
+		throw std::runtime_error("Error: config file not found or invalid!, please check the path");
 
 	file.open(s.c_str());
 	servers = Tokenization(file);
@@ -34,5 +34,5 @@ bool	webserv(const char *av)
 
 	file.close();
 
-	return (true);
+	return ;
 }

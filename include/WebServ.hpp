@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/27 14:15:24 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 13:24:25 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@
 
 
 void	check_syntax(std::ifstream &file);
-bool	webserv(const char *av);
+void	webserv(const char *av);
 bool	parcing(std::ifstream &file, std::string s);
 std::string	trim( std::string const & str );
 std::string trim( std::string const & str, std::string const & whitespace);
