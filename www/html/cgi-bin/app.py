@@ -20,22 +20,25 @@ a = """
       background-color: #f5f5f5;
       margin: 0;
       padding: 0;
+      font-family: monospace;
     }
 
     .container {
       max-width: 600px;
       margin: 40px auto;
       background-color: #fff;
-      padding: 20px;
+      padding: 30px 60px;
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      display: inline-block;
+      text-align: left;
     }
 
     h1 {
-      font-family: monospace;
+      text-align: center; 
       font-size: 2.5em;
       color: #007bff;
-      margin-bottom: 20px;
+      margin-bottom: 0;
     }
 
     p {
@@ -47,15 +50,23 @@ a = """
       color: #007bff;
       font-weight: bold;
     }
+
+    h2 {
+      text-align: center;
+      padding: 0;
+      margin-top: 0;
+      margin-bottom: 50px;
+      font-size: 1.3em;
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Hello, world!</h1>
-    <p>This is a simple HTML for testing CGI</p>
-    <p>This is your name\t: <span class="highlight"> """ + name + """</span></p>
-    <p>This is your age\t: <span class="highlight"> """ + age + """ </span></p>
-    <p>Your email\t: <span class="highlight"> """ + email + """ </span></p>
+    <h2>This is a simple HTML for testing CGI</h2>
+    <p>This is your name: <span class="highlight"> """ + name + """</span></p>
+    <p>This is your age: <span class="highlight"> """ + age + """ </span></p>
+    <p>Your email: <span class="highlight"> """ + email + """ </span></p>
   </div>
 </body>
 </html>
