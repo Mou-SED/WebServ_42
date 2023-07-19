@@ -3,17 +3,24 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:08:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/18 11:55:09 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 07:38:13 by ayassir          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "WebServ.hpp"
 #include "Request.hpp"
 #include <signal.h>
+#include <string>
+#include <unistd.h>
+#include <vector>
 
+#define SERVER_WRITE 3
+#define SERVER_READ 0
+#define CGI_WRITE 1
+#define CGI_READ 2
 
 enum eState
 {
@@ -25,31 +32,25 @@ enum eState
 	stateBody = 1 << 5,
 	stateEnd = 1 << 6,
 };
-#define SERVER_READ 0
-#define CGI_WRITE 1
-#define CGI_READ 2
-#define SERVER_WRITE 3
 
 class Request;
-
-
-class Cgi{
+class Cgi {
 	private:
-		std::string							_path;
-		std::string							_method;
 		std::map<std::string, std::string>	_headers;
 		std::vector<std::string> 			_cookies;
-		File								_fileBody;
-		std::string							_response;
-		std::string							_app;
-		std::string							_query;
 		std::vector<std::string>			_env;
-		uint16_t							_status;
-		off_t								_sizeBody;
-		std::string							_body;
-		std::string 						_location;
 		std::string 						_contentType;
 		std::string 						_setCookie;
+		std::string							_response;
+		std::string 						_location;
+		std::string							_method;
+		std::string							_query;
+		std::string							_path;
+		std::string							_body;
+		std::string							_app;
+		uint16_t							_status;
+		off_t								_sizeBody;
+		File								_fileBody;
 
 	public:
 		Cgi(void);
@@ -57,34 +58,35 @@ class Cgi{
 		Cgi(Cgi const & src);
 		Cgi(std::string const & path, std::string const & method, Request & req, std::pair<std::string, Directives > * location );
 		Cgi & operator=(Cgi const & rhs);
-		eState state;
-		off_t 	bodySize;
-		int 	execute(void);
+		
+		eState 		state;
+		off_t 		bodySize;
+		int 		execute(void);
 		bool		foundBody;
 		std::vector<int> fds = std::vector<int>(4);
 		int 		pid;
 		int 		ret;
 		int			exStatus;
-		void	sendingBody(void);
-		void	childProcess(void);
-		void	parentProcess(void);
-		void	setEnv(void);
-		void 	setApp(std::string const & app);
-		void 	setPath(std::string const & path);
-		void 	setMethod(std::string & method);
-		void 	setBody(std::string & body);
-		void 	setQuery(std::string & query);
-		void	setHeaders(std::map<std::string, std::string>& headers);
-		void	addHeader(std::string & key, std::string & value);
+		void		setHeaders(std::map<std::string, std::string>& headers);
+		void		addHeader(std::string & key, std::string & value);
+		void 		setPath(std::string const & path);
+		void 		setApp(std::string const & app);
+		void 		setMethod(std::string & method);
+		void 		setQuery(std::string & query);
+		void 		setBody(std::string & body);
+		void		parentProcess(void);
+		void		childProcess(void);
+		void		sendingBody(void);
+		void		setEnv(void);
 
-		void	addToHeaders(std::string &str, bool &body);
-		off_t	sizeFile( void );
-		void	createPipe(void);
+		void		addToHeaders(std::string &str, bool &body);
+		off_t		sizeFile( void );
+		void		createPipe(void);
 
-		void	waitingChild(void);
+		void		waitingChild(void);
 
-		bool 	checkApp(const char *env_var);
-		bool 	checkPath(std::string & path);
+		bool 		checkApp(const char *env_var);
+		bool 		checkPath(std::string & path);
 
 		std::string getPath(void) const;
 		std::string getMethod(void) const;
@@ -101,7 +103,7 @@ class Cgi{
 		std::string getContentType(void) const;
 
 
-		void generateResponse(void);
-		void clear(void);
+		void 		generateResponse(void);
+		void 		clear(void);
 
 };
