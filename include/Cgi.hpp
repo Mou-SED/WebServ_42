@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:08:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 07:38:13 by ayassir          ###   ########.fr       */
+/*   Updated: 2023/07/19 10:28:05 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,13 +63,14 @@ class Cgi {
 		off_t 		bodySize;
 		int 		execute(void);
 		bool		foundBody;
-		std::vector<int> fds = std::vector<int>(4);
+		std::vector<int> fds;
 		int 		pid;
 		int 		ret;
 		int			exStatus;
 		void		setHeaders(std::map<std::string, std::string>& headers);
 		void		addHeader(std::string & key, std::string & value);
 		void 		setPath(std::string const & path);
+		void		setFds(std::string const & methode);
 		void 		setApp(std::string const & app);
 		void 		setMethod(std::string & method);
 		void 		setQuery(std::string & query);

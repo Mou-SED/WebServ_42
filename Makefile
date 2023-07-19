@@ -73,7 +73,7 @@ OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
 # ****************************** Compiler Options ******************************
 CXX := c++
-CXXFLAGS := -Wall -Wextra -Werror -std=c++17 -MMD -I $(INC_DIR) #TODO Don't forget to change to c++98
+CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -MMD -I $(INC_DIR) #TODO Don't forget to change to c++98
 
 # ******************************** Make Flags **********************************
 MAKEFLAGS += --silent

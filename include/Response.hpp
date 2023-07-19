@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/21 16:20:23 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/18 18:15:01 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 10:30:35 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,9 +33,9 @@ class Response
 
 	public:
 		char *_buffer;
-		std::string _Location = "";
-		bool _isCGI = false;
-		bool _isDir = false;
+		std::string _Location;
+		bool _isCGI;
+		bool _isDir;
 		std::vector<std::pair<std::set<int> , std::string> > _error_pages;
 		std::ifstream ifs;
 		size_t bytesSent;

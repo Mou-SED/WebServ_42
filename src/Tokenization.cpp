@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 06:47:08 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/19 11:18:59 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void parc_location(std::ifstream &file, std::string &value, Server &servers)
 	Tokens token;
 
 	value = value.substr(0, value.find_first_of(" {"));
-	servers.context.push_back(std::make_pair(value, std::map<std::string, std::vector<std::string>>()));
+	servers.context.push_back(std::make_pair(value, std::map<std::string, std::vector<std::string> >()));
 	while (getline(file, line))
 	{
 		std::string key;
@@ -142,6 +142,8 @@ void setDefaultDirectives(std::vector<Server> &servers)
 			servers[i].directives["server_name"].push_back(servers[i].directives["listen"][0].substr(0, servers[i].directives["listen"][0].find_first_of(":")));
 		if (servers[i].directives.find("error_page") == servers[i].directives.end())
 			servers[i].directives["error_page"].push_back("404 /404.html");
+		if (servers[i].directives.find("client_max_body_size") == servers[i].directives.end())
+			servers[i].directives["client_max_body_size"].push_back("2m");
 	}
 
 	for (size_t i = 0; i < servers.size(); i++)

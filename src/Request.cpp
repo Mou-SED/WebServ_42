@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/19 09:36:54 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 11:18:21 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ Request::Request(void)
 {
 	state = REQUEST_LINE;
 	this->isChunked = false;
+	this->_chunkedTurn = false;
 	this->contentLength = 0;
 	this->status = OK;
 	this->_server = nullptr;
@@ -212,7 +213,7 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 		
 
 		if (tokens[i] != "\n" and tokens[i] != "\r\n"
-				and  ((header.first.empty() or header.second.empty() or not findIf(this->_headers, {header.first})) or (tokens[i].find(":") == std::string::npos or tokens[i][tokens[i].find(":") - 1] == ' ' or (header.first == "content-length" and compareStr(header.second, "2147483647")))))
+				and  ((header.first.empty() or header.second.empty() or not findIf(this->_headers, header.first)) or (tokens[i].find(":") == std::string::npos or tokens[i][tokens[i].find(":") - 1] == ' ' or (header.first == "content-length" and compareStr(header.second, "2147483647")))))
 		{ // TODO : check headers can be duplicated in nginx.
 			this->status = BAD_REQUEST;
 			this->state = ERR;
@@ -258,8 +259,9 @@ void remove_end(std::string &str, std::string to_remove)
 
 bool checkMethod(std::string &line)
 {
-	std::vector<std::string> list = {"GET", "POST", "DELETE", "PUT"};
+	std::vector<std::string> list(4);// = {"GET", "POST", "DELETE", "PUT"};
 
+	list[0] = "GET";list[1] = "POST";list[2] = "DELETE";list[3] = "PUT";
 	for (size_t i = 0; i < list.size(); i++)
 	{
 		if (line == list[i])

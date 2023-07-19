@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:04:27 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/25 21:28:56 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 10:26:15 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ class Request
 		std::map<std::string, std::string> _headers; // TODO : only one header with the same name
 		std::stringstream _body;
 		std::stringstream _chunkedBody;
-		bool _chunkedTurn = false;
+		bool _chunkedTurn;
 		Server * _server;
 
 	public:

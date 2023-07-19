@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/18 13:11:15 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 11:19:14 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,40 +85,6 @@ bool	beginsWith( const std::string & str, const std::string & prefix )
 	return str.substr(0, prefix.size()) == prefix;
 }
 
-void	print_servers(Server &servers, int ind)
-{
-	std::cout << "Sever block" << std::endl;
-	for (int i = 0; i < ind; i++)
-		std::cout << "---";
-	std::cout << "Directives:" << std::endl;
-	std::cout << servers.directives.size() << std::endl;
-	for (const auto& [key, values] : servers.directives)
-	{
-		std::cout << "- " << key << ": ";
-		for (const auto& value : values)
-		{
-			std::cout << value << " ";
-		}
-		std::cout << std::endl;
-	}
-
-	std::cout << "Contexts:" << std::endl;
-	for (const auto& [name, context] : servers.context)
-	{
-		std::cout << "- " << name << ":" << std::endl;
-		for (const auto& [key, values] : context)
-		{
-			std::cout << "  - " << key << ": ";
-			for (const auto& value : values)
-			{
-				std::cout << value << " ";
-			}
-			std::cout << std::endl;
-		}
-	}
-
-}
-
 bool	checkDirFile(std::string &path, std::string const &index)
 {
 	std::vector<std::string> indexes = split(const_cast<std::string &>(index), ' ', false);
@@ -189,6 +155,13 @@ std::string const generateDirectory(std::string const &path)
     ss << "\t</body>\n";
     ss << "</html>\n";
     return ss.str();
+}
+
+bool findIf( std::map<std::string, std::string> &headers, std::string const & v )
+{
+		if (headers.find(v) == headers.end())
+			return true;
+	return false;
 }
 
 bool findIf( std::map<std::string, std::string> &headers, std::vector<std::string> const v )

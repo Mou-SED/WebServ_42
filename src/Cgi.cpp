@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 09:42:45 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 11:31:03 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,17 +32,24 @@ Cgi::Cgi(Cgi const & src)
 Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location )
 {
 	std::vector<std::string> tmp = split(location->second["cgi_pass"][0], ' ', false);
-
-	setApp(tmp[1]);
-	setPath(location->second["root"][0] + path.substr(0, path.find_first_of("?")));
-	this->_method = method;
-	this->_headers = req.getHeaders();
-	this->_query = getQuery(path);
-	this->_fileBody = req.file;
-	this->_sizeBody =req._bodySize;
-	this->state = stateStar;
-	this->bodySize = 0;
-	this->_status = req.status;
+	
+	try{
+		setApp(tmp[1]);
+		setPath(location->second["root"][0] + path.substr(0, path.find_first_of("?")));
+		this->_method = method;
+		setFds(method);
+		this->_headers = req.getHeaders();
+		this->_query = getQuery(path);
+		this->_fileBody = req.file;
+		this->_sizeBody =req._bodySize;
+		this->state = stateStar;
+		this->bodySize = 0;
+		this->_status = req.status;
+	}
+	catch(const std::exception& e)
+	{
+		this->_status = INTERNAL_SERVER_ERROR;
+	}
 	return ;
 }
 
@@ -119,8 +126,10 @@ void Cgi::childProcess(void)
 	for (size_t i = 0; i < this->_env.size(); i++)
 		delete[] env[i];
 	delete[] env;
+	std::cerr << "execve failed: " << args[0] << " " << args[1] << std::endl;
+	delete[] args[0]; 
+	delete[] args[1];
 	delete[] args;
-	std::cerr << "execve failed" << std::endl;
 	exit(1);
 }
 
@@ -204,12 +213,11 @@ void	Cgi::waitingChild( void )
 		}
 		else {
 		{
-			if ((WIFEXITED(this->exStatus) == true and WEXITSTATUS(this->exStatus) != EXIT_SUCCESS))
+			if ((WIFEXITED(this->exStatus) == true and WEXITSTATUS(this->exStatus) != EXIT_SUCCESS) or this->exStatus == 1)
 				this->_status = BAD_GATEWAY;
 			return ;
 		}
 		}
-		
 		now = time(NULL);
 	}
 	this->_status = GATEWAY_TIME_OUT;
@@ -250,7 +258,6 @@ void	Cgi::parentProcess( void )
 			if (this->_body.find("\r\n\r\n") != std::string::npos or this->_body.find("\n\n") != std::string::npos)
 				break;
 		}
-		
 		close(fds[SERVER_READ]);
 		waitingChild();
 	}
@@ -302,6 +309,14 @@ void Cgi::setMethod(std::string& method)
 void Cgi::setHeaders(std::map<std::string, std::string>& headers)
 {
 	this->_headers = headers;
+}
+
+void	Cgi::setFds(std::string const & methode)
+{
+	if (methode == "GET")
+		this->fds = std::vector<int>(2);
+	else
+		this->fds = std::vector<int>(4);
 }
 
 void Cgi::setQuery(std::string &query)

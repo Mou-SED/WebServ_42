@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/18 16:20:55 by ayassir          ###   ########.fr       */
+/*   Updated: 2023/07/19 10:30:59 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,8 @@
 
 Response::Response( void )
 {
+	_isCGI = false;
+	_isDir = false;
 	bytesSent = 0;
 	_bodySize = 0;
 	return ;
@@ -21,6 +23,8 @@ Response::Response( void )
 
 Response::Response( uint16_t status )
 {
+	_isCGI = false;
+	_isDir = false;
 	bytesSent = 0;
 	_bodySize = 0;
 	this->_status = status;
@@ -32,7 +36,7 @@ Response::~Response( void )
 	if (_bodySize > 0)
 	{
 		this->_bodySize = 0;
-		// delete [] _buffer;
+		delete [] _buffer;
 	}
 	return ;
 }
@@ -253,9 +257,9 @@ void Response::PUT( void )
 {
 	char c = this->_request.getServer()->directives["client_max_body_size"][0].back();
 	size_t max_body_size = std::atoi(this->_request.getServer()->directives["client_max_body_size"][0].c_str());
-	if ( c == 'K' )
+	if ( c == 'K' or c == 'k' )
 		max_body_size *= 1024;
-	else if ( c == 'M' )
+	else if ( c == 'M' or c == 'm' )
 		max_body_size *= MYBUFSIZ;
 	if ( this->_request._bodySize > (off_t)max_body_size )
 	{
@@ -311,6 +315,12 @@ void Response::POST( std::pair<std::string, Directives > * location )
 	else
 		Methode = "GET";
 	Cgi cgi(this->getUri(), Methode, this->_request, location);
+	if (cgi.getStatus() >= BAD_REQUEST)
+	{
+		this->_status = cgi.getStatus();
+		this->generateErrorResponse();
+		return ;
+	}
 	cgi.execute();
 	this->_status = cgi.getStatus();
 	if (this->_status >= BAD_REQUEST)
@@ -320,19 +330,11 @@ void Response::POST( std::pair<std::string, Directives > * location )
 	}
 	this->_bodySize = cgi.getSizeBody();
 	this->_buffer = strdup(cgi.getBody().c_str());
-	//*******************************************************************
 	this->_headers += "HTTP/1.1 ";
 	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
 	this->_headers += "\r\n";
 	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
 	this->_headers += "Date: " + getDate() + "\r\n";
-	// if (this->_Location != "")
-	// {
-	// 	this->_headers += "Location: " + this->_Location + "\r\n";
-	// 	this->_headers += "Connection: close\r\n\r\n";
-	// 	return ;
-	// }
-	// this->_headers += cgi.getHeaders();
 	this->_headers += "Content-Type: " + cgi.getContentType() + "\r\n";//generateContentType(this->_path) + "\r\n";
 	if (cgi.getLocation() != "")
 		this->_headers += "Location: " + cgi.getLocation() + "\r\n";
@@ -340,8 +342,6 @@ void Response::POST( std::pair<std::string, Directives > * location )
 		this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
 	this->_headers += "Connection: close\r\n\r\n";
-	// this->_headers.append(this->_buffer, this->_buffer + this->_bodySize);
-	// 	GET( location );
 }
 
 void Response::generateErrorResponse( void )

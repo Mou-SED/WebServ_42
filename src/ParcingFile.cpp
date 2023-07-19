@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ParcingFile.cpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 06:47:01 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/19 11:11:08 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@ int  Check::num_line;
 std::set<std::string> Check::methods;
 std::string Check::key;
 std::string Check::value;
-std::vector<std::string> type_value = {"default_type","server","listen","server_name","error_page","client_max_body_size","location","root","index","client_body_temp_path","autoindex", "return", "cgi_pass", "allowed_methods" };
+std::string arr[] = {"default_type", "server", "listen", "server_name", "error_page", "client_max_body_size", "location", "root", "index", "client_body_temp_path", "autoindex", "return", "cgi_pass", "allowed_methods"};
+std::vector<std::string> type_value(arr, arr + sizeof(arr) / sizeof(arr[0]));
 std::stack<char> Check::brackets;
 
 bool Check::ipAddress(std::string s)
@@ -207,6 +208,20 @@ bool parcing(std::ifstream &file, std::string s)
 	if (not file.is_open())
 		return (false);
 	(void)s;
+	type_value[0] = "default_type";
+	type_value[1] = "server";
+	type_value[2] = "listen";
+	type_value[3] = "server_name";
+	type_value[4] = "error_page";
+	type_value[5] = "client_max_body_size";
+	type_value[6] = "location";
+	type_value[7] = "root";
+	type_value[8] = "index";
+	type_value[9] = "client_body_temp_path";
+	type_value[10] = "autoindex";
+	type_value[11] = "return";
+	type_value[12] = "cgi_pass";
+	type_value[13] = "allowed_methods";
 	check_syntax(file);
 	return (true);
 }
