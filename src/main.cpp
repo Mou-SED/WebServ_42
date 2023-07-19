@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 21:45:12 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 06:46:57 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/19 13:33:30 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,11 @@
 int main(int ac, char **av)
 {
 	if (ac > 2)
-		return (write(2, "Error: Multi Argument [..]\n", 6), 1);
+		return (std::cout << "Usage: ./webserv [config_file]" << std::endl, 1);
 	try
 	{
-		if (ac == 1)
-			webserv("conf/webserv.conf");
-		else
-			webserv(av[1]);
+		if (ac == 1) webserv("conf/webserv.conf");
+		else webserv(av[1]);
 	}
 	catch(const std::exception & e)
 	{
