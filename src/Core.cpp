@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/17 17:59:01 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/18 16:21:34 by ayassir          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,7 +138,7 @@ void Core::start( void )
 			}
 			if ( this->_requests[currentFd].state == SENT )
 			{
-				std::cerr << "Close connection on fd " << currentFd << std::endl;
+				std::cout << "Close connection on fd " << currentFd << std::endl;
 				this->removePollFd( currentFd );
 				this->_serversByFd.erase( currentFd );
 				this->_requests[currentFd].clear();
@@ -159,7 +159,7 @@ void Core::acceptNewConnection( int serverFd )
 	if ( newFd == -1 )
 		throw std::runtime_error( strerror( errno ) );
 
-	std::cerr << "Accept new connection on fd " << newFd << std::endl;
+	std::cout << "Accept new connection on fd " << newFd << std::endl;
 
 	fcntl( serverFd, F_SETFL, O_NONBLOCK );
 	int yes = 1;
@@ -261,7 +261,7 @@ void Core::sentGetResponse(int clientFd)
 		response.setRequest( request );
 		response.setErrorPages( request.getServer()->directives["error_page"] );
 		response.generateResponse();
-		std::cerr << response.getHeaders() << std::endl;
+		std::cout << response.getHeaders();
 		send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
 		if (response._Location != "")
 		{
@@ -270,7 +270,6 @@ void Core::sentGetResponse(int clientFd)
 		}
 		if ( response.getStatus() < BAD_REQUEST and response._isDir == false and response._isCGI == false)
 		{
-			std::cerr << "Errrrrrrrrrrooorr\n";
 			response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
 			this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
 			memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
@@ -288,7 +287,7 @@ void Core::sentGetResponse(int clientFd)
 	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
 	{
 		this->_requests[clientFd].state = SENT;
-		std::cerr << "Sent" << std::endl;
+		std::cout << "Sent" << std::endl;
 	}
 
 	return ;
@@ -309,7 +308,7 @@ void Core::sentHeadersResponse( int clientFd )
 		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
 		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
 	}
-	std::cerr << "buffer sent = " << this->_responses[clientFd]._buffer << std::endl;
+	std::cout << "buffer sent = " << this->_responses[clientFd]._buffer << std::endl;
 	ssize_t sentBytes = send(
 		clientFd,
 		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
@@ -339,7 +338,7 @@ void Core::sentPostResponse( int clientFd )
 	this->_responses[clientFd].bytesSent += sentBytes;
 	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
 	{
-		std::cerr << "Sent!!!!" << std::endl;
+		std::cerr << "Sent" << std::endl;
 		this->_requests[clientFd].state = SENT;
 	}
 }

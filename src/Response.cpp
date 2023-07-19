@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/18 14:07:37 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/18 16:20:55 by ayassir          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,15 +120,12 @@ void Response::toStringPut( void )
 
 bool	checking_extension(std::string const &Path, std::string const & cgi)
 {
-	std::cout << Path << std::endl;
 	std::string ext;
 	std::string extension = cgi.substr(0, cgi.find(" "));
 	if (Path.find("?") != std::string::npos)
 		ext = Path.substr(Path.find(".") + 1, Path.find("?") - Path.find(".") - 1);
 	else
 	 	ext = Path.substr(Path.find(".") + 1);
-	std::cerr << "ext = "  << ext << std::endl;
-	std::cerr << "extension = " << extension << std::endl;
 	return (ext == extension);
 }
 
@@ -178,7 +175,6 @@ bool	Response::redirection(std::string &path,std::string const & uri, std::pair<
 	{
 		path = this->_request.getServer()->getRoot() + ret[1] + uri;
 		this->setPath(ret[1]);
-		std::cerr << "path = " << path << std::endl;
 		return false;
 	}
 }
@@ -309,7 +305,6 @@ void Response::PUT( void )
 void Response::POST( std::pair<std::string, Directives > * location )
 {
 	this->_isCGI = true;
-	std::cerr << "pass = " << location->second["cgi_pass"][0] << std::endl;
 	std::string Methode;
 	if (this->getUri().find("?") == std::string::npos and this->_request.getMethod() == "POST")
 		Methode = "POST";

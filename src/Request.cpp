@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/18 14:07:57 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/18 16:15:23 by ayassir          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@
 void	checkHeaders(std::map<std::string, std::string> &headers)
 {
 	if (headers["host"].empty())
-		std::cerr << "Host header is missing" << std::endl;//TODO 
+		std::cerr << "Error : Host header is missing" << std::endl;//TODO 
 }
 
 void File::createName( void )
@@ -373,9 +373,7 @@ bool Request::parsingBody(std::stringstream &buffer)
 	}
 	else
 	{
-		std::cerr <<"file name :" << this->file.path << std::endl;
 		int WR_size = write(this->file.WR_fd, buffer.str().c_str(), buffer.str().size());
-		std::cerr << "WR_size: " << WR_size << std::endl;
 		_bodySize += WR_size;
 		if (_bodySize == (off_t)this->contentLength)
 			this->state = DONE;

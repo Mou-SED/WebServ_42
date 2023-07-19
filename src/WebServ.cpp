@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/12 22:02:58 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/17 06:47:19 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/18 16:18:05 by ayassir          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ bool	webserv(const char *av)
 	if (not file.is_open() or not parcing(file, s))
 		throw std::runtime_error("Error");
 
+	std::cout << "Ports available : 12345(webserv), 8080(app.py), 8070(cookies), 8060(session).\n";
 	file.open(s.c_str());
 	servers = Tokenization(file);
 
