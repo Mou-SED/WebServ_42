@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/19 11:18:21 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 20:16:56 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,10 +60,10 @@ Request::~Request(void)
 {
 	if (file.path.size() > 0)
 	{
-		// std::remove(file.path.c_str());
-		file.file.close();
-		if (file.WR_fd > 2)
+		if (file.file.is_open())
 			close(file.WR_fd);
+		file.file.close();
+		
 	}
 }
 
@@ -169,6 +169,7 @@ Request & Request::operator=(Request const & rhs)
 	{
 		this->file.name = rhs.file.name;
 		this->file.path = rhs.file.path;
+		if (this->file.WR_fd > 2)
 		close(this->file.WR_fd);
 		this->file.WR_fd = open(this->file.path.c_str(), O_RDWR , 0666);
 	}

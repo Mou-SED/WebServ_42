@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/19 09:42:22 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 20:16:37 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -157,7 +157,6 @@ void Core::acceptNewConnection( int serverFd )
 	int newFd = accept( serverFd, NULL, NULL );
 	if ( newFd == -1 )
 		throw std::runtime_error( strerror( errno ) );
-
 	fcntl( serverFd, F_SETFL, O_NONBLOCK );
 	int yes = 1;
 	setsockopt( serverFd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int) );
