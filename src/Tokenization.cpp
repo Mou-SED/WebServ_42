@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 11:18:59 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/19 16:27:57 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,6 +90,10 @@ Server parc_server(std::ifstream &file, std::string &line)
 		std::stringstream ss(trim(line));
 		ss >> key;
 		ss >> value;
+
+		if (value.empty() and key.empty())
+			continue;
+		std::cerr << "key: " << key << " value: " << value << std::endl;
 		value = trim(line.substr(line.find(value)));
 		value = value.substr(0, value.find_first_of(";"));
 		token = get_tokens(key);
@@ -232,16 +236,12 @@ std::vector<Server> Tokenization(std::ifstream &file)
 		std::string key;
 		std::stringstream ss(line);
 		ss >> key;
+
 		token = get_tokens(key);
-		if (token == TOKEN_SERVER) // TODO : part_server
+		if (token == TOKEN_SERVER)
 			servers.push_back(parc_server(file, line));
-		else if (token == TOKEN_LOCATION) // TODO : part_location
-		{
-			if (servers.size() == 0)
-				throw std::runtime_error("Syntax error");
-			else
-				parc_location(file, line, servers[servers.size() - 1]);
-		}
+		if (servers.size() == 0)
+			throw std::runtime_error("Syntax Error!");
 	}
 	setDefaultDirectives(servers);
 
