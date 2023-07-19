@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: ayassir <ayassir@student.42.fr>            +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/18 16:15:23 by ayassir          ###   ########.fr       */
+/*   Updated: 2023/07/19 09:36:54 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -402,7 +402,6 @@ bool Request::mainParsingRequest(std::stringstream &ss)
 {
 	if ( this->state == BODY )
 	{
-		std::cerr << "BODY: "<< ss.str() << std::endl;
 		std::string s = this->_chunkedBody.str();
 		s.append(ss.str());
 		this->_chunkedBody.str("");
