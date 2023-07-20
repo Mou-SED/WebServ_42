@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 11:11:38 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:33:21 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,7 +77,6 @@ void Response::toString( std::string const  &type)
 	this->_headers += "Content-Type: " + type + CRLF;
 	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + CRLF;
 	this->_headers += std::string("Connection: close") + CRLF2;
-	// TODO : Add headers for cookies and redirection.
 }
 
 void Response::toStringGet( void )

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/20 06:26:08 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:33:49 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -186,7 +186,7 @@ bool checkHeaders(std::map<std::string, std::string> headers, std::string key)
 		return false;
 	return true;
 }
-// content length should be less than 2147483647
+
 bool compareStr(std::string const &str1, std::string const &str2)
 {
 	if (str1.size() > str2.size() or str1.find_first_not_of("0123456789") != std::string::npos)
@@ -222,7 +222,7 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			this->state = ERR;
 			return false;
 		}
-		if ((tokens[i] == "\n" or tokens[i] == CRLF) and (not this->_headers["content-length"].empty() or not this->_headers["transfer-encoding"].empty()) ) // TODO : check if the header is valid
+		if ((tokens[i] == "\n" or tokens[i] == CRLF) and (not this->_headers["content-length"].empty() or not this->_headers["transfer-encoding"].empty()) )
 		{
 			i++;
 			if ( this->_headers["transfer-encoding"] == "chunked" ) this->isChunked = true;
@@ -284,12 +284,12 @@ bool Request::parsingStartLine(std::vector<std::string> &tokens)
 		this->state = ERR;
 		return false;
 	}
-	if (requestLine.size() != 3 or not checkMethod(requestLine[0])) // TODO : check method should return another error (METHOD_NOT_IMPLEMENTED)
+	if (requestLine.size() != 3 or not checkMethod(requestLine[0]))
 	{
-		if ( requestLine[0] == "OPTIONS" or requestLine[0] == "HEAD" or requestLine[0] == "PATCH" )
-			this->status = NOT_IMPLEMENTED;
-		else
+		if ( requestLine.size() != 3 )
 			this->status = BAD_REQUEST;
+		else
+			this->status = NOT_IMPLEMENTED;
 		this->state = ERR;
 
 		return false;

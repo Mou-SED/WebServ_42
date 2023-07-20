@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/20 11:11:31 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:33:55 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ Core::Core(std::vector<Server> const &servers)
 			this->_serversByFd[fd].push_back( const_cast<Server *>(&servers[i]) );
 			serversByHost[hostAndPort] = fd;
 		}
-		else // serversByHost.count( hostAndPort ) == 1
+		else
 		{
 			int fd = serversByHost[hostAndPort];
 			this->_serversByFd[fd].push_back( const_cast<Server *>(&servers[i]) );
@@ -232,7 +232,6 @@ void Core::readRequest( int clientFd )
 	Request &request = this->_requests[clientFd];
 	if ( readBytes == 0 )
 	{
-		// INFO: The client has closed the connection
 		request.state = SENT;
 		return ;
 	}

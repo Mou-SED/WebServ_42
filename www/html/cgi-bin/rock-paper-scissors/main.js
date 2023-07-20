@@ -48,8 +48,6 @@ button.addEventListener('click', async function(event) {
 		}
 	}
 
-	console.log(value);
-
 	const response = await fetch(`/cgi-bin/rock-paper-scissors/backend.py?value=${value}`);
 	const json = await response.json();
 
@@ -61,7 +59,6 @@ button.addEventListener('click', async function(event) {
 	userChoiceElem.attributes.title.value = userChoice.name;
 	computerChoiceElem.src = "unknown.png";
 
-	// Show loading animtation for 2s
 	new Promise(resolve => setTimeout(() => {
 
 		const result = json.result;
@@ -91,12 +88,7 @@ button.addEventListener('click', async function(event) {
 		return resolve;
 	}, 1500));
 
-	// Show the result
 	computerChoiceElem.src = "loading.gif"
-
-	
-
-
 });
 
 const labels = document.querySelectorAll('label');

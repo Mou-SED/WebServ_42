@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 11:02:57 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:30:13 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,6 @@ int Cgi::execute(void)
 {
 	this->createPipe();
 
-	// fcntl(fds[CGI_WRITE], F_SETFL, O_NONBLOCK);
 	this->pid = fork();
 	if (this->pid == -1)
 		return -1;
