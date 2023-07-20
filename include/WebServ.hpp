@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   WebServ.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 08:58:16 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:30:10 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,8 +58,6 @@ void	webserv(const char *av);
 bool	parcing(std::ifstream &file, std::string s);
 std::string	trim( std::string const & str );
 std::string trim( std::string const & str, std::string const & whitespace);
-
-/////////////////////////// check_value.cpp ///////////////////////////
 
 void	listen_check(std::string const & value);
 void	server_name_check(std::string const & value);

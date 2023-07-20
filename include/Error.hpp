@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/22 13:03:04 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/06/23 23:59:05 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:30:16 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,6 @@ class Error
 		std::string _errorPage;
 		std::string _errorMessage;
 		std::string _errorBody;
-		// off_t		_errorBodySize;
 
 	public:
 		Error( uint16_t error );
