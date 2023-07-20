@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 15:20:59 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/19 20:16:37 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 06:48:27 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -153,7 +153,6 @@ void Core::start( void )
 
 void Core::acceptNewConnection( int serverFd )
 {
-	//TODO: Save client info for later use (CGI)
 	int newFd = accept( serverFd, NULL, NULL );
 	if ( newFd == -1 )
 		throw std::runtime_error( strerror( errno ) );
@@ -265,10 +264,11 @@ void Core::sentGetResponse(int clientFd)
 		}
 		if ( response.getStatus() < BAD_REQUEST and response._isDir == false and response._isCGI == false)
 		{
-			response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
+			response.ifs.open( response.getPath().c_str() );
 			this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
 			memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
 			this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
+			response.ifs.close();
 		}
 	}
 	ssize_t sentBytes = send(
@@ -294,10 +294,11 @@ void Core::sentHeadersResponse( int clientFd )
 	send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
 	if ( response.getStatus() < BAD_REQUEST )
 	{
-		response.ifs.open( response.getPath().c_str() ); // TODO: Close file after
+		response.ifs.open( response.getPath().c_str() );
 		this->_responses[clientFd]._buffer = new char [response.getBodySize() + 1];
 		memset(this->_responses[clientFd]._buffer, 0, response.getBodySize() + 1);
 		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
+		response.ifs.close();
 	}
 	ssize_t sentBytes = send(
 		clientFd,
