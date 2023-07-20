@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/19 20:16:56 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 09:19:04 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,19 +208,18 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 
 		header = make_pair(
 			tokens[i].substr(0, tokens[i].find(":")),
-			trim(tokens[i].substr(tokens[i].find(":") + 1, tokens[i].find_first_of("\r\n") - tokens[i].find(":") - 1))
+			trim(tokens[i].substr(tokens[i].find(":") + 1, tokens[i].find_first_of(CRLF) - tokens[i].find(":") - 1))
 		);
 		std::transform(header.first.begin(), header.first.end(), header.first.begin(), ::tolower);
-		
 
-		if (tokens[i] != "\n" and tokens[i] != "\r\n"
+		if (tokens[i] != "\n" and tokens[i] != CRLF
 				and  ((header.first.empty() or header.second.empty() or not findIf(this->_headers, header.first)) or (tokens[i].find(":") == std::string::npos or tokens[i][tokens[i].find(":") - 1] == ' ' or (header.first == "content-length" and compareStr(header.second, "2147483647")))))
-		{ // TODO : check headers can be duplicated in nginx.
+		{
 			this->status = BAD_REQUEST;
 			this->state = ERR;
 			return false;
 		}
-		if ((tokens[i] == "\n" or tokens[i] == "\r\n") and (not this->_headers["content-length"].empty() or not this->_headers["transfer-encoding"].empty()) ) // TODO : check if the header is valid
+		if ((tokens[i] == "\n" or tokens[i] == CRLF) and (not this->_headers["content-length"].empty() or not this->_headers["transfer-encoding"].empty()) ) // TODO : check if the header is valid
 		{
 			i++;
 			if ( this->_headers["transfer-encoding"] == "chunked" ) this->isChunked = true;
@@ -235,7 +234,7 @@ bool Request::parsingHeaders(std::vector<std::string> &tokens)
 			}
 			break;
 		}
-		else if ( tokens[i] == "\n" or tokens[i] == "\r\n" )
+		else if ( tokens[i] == "\n" or tokens[i] == CRLF )
 		{
 			this->state = DONE;
 			checkHeaders(this->_headers);
@@ -274,7 +273,7 @@ bool checkMethod(std::string &line)
 
 bool Request::parsingStartLine(std::vector<std::string> &tokens)
 {
-	remove_end(tokens[0], "\r\n");
+	remove_end(tokens[0], CRLF);
 	std::vector<std::string> requestLine = split(tokens[0], ' ', false);
 	if (tokens[0].size() > 2048)
 	{
@@ -446,7 +445,7 @@ bool Request::parsingChunked(std::stringstream &buffer)
 		this->state = DONE;
 		return true;
 	}
-	pos = buffer.str().find_first_of("\r\n", pos) + checkCRLF(buffer.str(), buffer.str().find_first_of("\r\n", pos));
+	pos = buffer.str().find_first_of(CRLF, pos) + checkCRLF(buffer.str(), buffer.str().find_first_of(CRLF, pos));
 
 	int WR_size = write(this->file.WR_fd, buffer.str().substr(pos, chunkSize).c_str(), chunkSize);
 	_bodySize += WR_size;

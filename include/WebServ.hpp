@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 13:24:25 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/20 08:58:16 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,6 +49,8 @@
 
 #define MAX_EVENTS 1024
 #define MYBUFSIZ 1048576
+#define CRLF "\r\n"
+#define CRLF2 "\r\n\r\n"
 
 
 void	check_syntax(std::ifstream &file);

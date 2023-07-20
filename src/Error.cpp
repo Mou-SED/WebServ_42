@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Error.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: junik <abderrachidyassir@gmail.com>        +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/07/17 06:46:52 by junik             #+#    #+#             */
-/*   Updated: 2023/07/17 06:46:53 by junik            ###   ########.fr       */
+/*   Updated: 2023/07/20 08:15:54 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,7 +69,7 @@ void 	Error::setErrorMessage( std::string const & msg )
 {
 	std::string s = "<html>\n<head><title>" + msg + "</title></head>\n<body>\n<center><h1>" + msg + "</h1></center>\n<hr><center>WebServ/0.1</center>\n</body>\n</html>\n";
 	this->_errorBody = s;
-	std::string header  = "HTTP/1.1 " + std::to_string(this->_error) + " " + msg + "\r\n" + "Content-Type: text/html\r\n" + "Content-Length: " + std::to_string(s.length()) + "\r\n\r\n";
+	std::string header  = "HTTP/1.1 " + std::to_string(this->_error) + " " + msg + CRLF + "Content-Type: text/html" + CRLF + "Content-Length: " + std::to_string(s.length()) + CRLF + CRLF;
 	this->_errorMessage = header + s;
 }
 

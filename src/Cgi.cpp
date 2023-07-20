@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 13:43:28 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 09:18:45 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ std::string getMatching(std::string const & s1, std::string const & s2)
 Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location )
 {
 	std::vector<std::string> tmp = split(location->second["cgi_pass"][0], ' ', false);
-	
+
 	try{
 		setApp(tmp[1]);
 		setPath(getMatching(location->second["root"][0] , path.substr(0, path.find_first_of("?"))));
@@ -177,12 +177,12 @@ void	Cgi::sendingBody( void )
 
 void	Cgi::addToHeaders(std::string &str, bool &body)
 {
-	size_t pos = str.find("\r\n\r\n");
+	size_t pos = str.find(CRLF2);
 	size_t i = 0;
 
 	while (i < pos)
 	{
-		i = str.find("\r\n");
+		i = str.find(CRLF);
 		if (i == std::string::npos or i == 0)
 			break;
 		std::string tmp = str.substr(0, i);
@@ -202,9 +202,9 @@ void	Cgi::addToHeaders(std::string &str, bool &body)
 		else if (v[0] == "Set-Cookie")
 			this->_setCookie = v[1], this->_headers[v[0]] = v[1];
 	}
-	if (str.find("\r\n\r\n") != std::string::npos)
+	if (str.find(CRLF2) != std::string::npos)
 		body = true;
-	this->_body = str.substr(str.find("\r\n\r\n") + 3);
+	this->_body = str.substr(str.find(CRLF2) + 3);
 }
 
 void	Cgi::waitingChild( void )
@@ -248,7 +248,7 @@ void	Cgi::parentProcess( void )
 			sendingBody();
 		while ( 1337 )
 		{
-			if (this->_body.find("\r\n\r\n") != std::string::npos)
+			if (this->_body.find(CRLF2) != std::string::npos)
 					break;
 			if (time(NULL) - t > 10)
 			{
@@ -261,11 +261,11 @@ void	Cgi::parentProcess( void )
 			if (ret == 0 or ret == -1)
 				break;
 			str.append(buffer, ret);
-			if (str.find("\r\n\r\n") != std::string::npos and body == false)
+			if (str.find(CRLF2) != std::string::npos and body == false)
 				addToHeaders(str, body);
 			else
 				this->_body.append(buffer, ret);
-			if (this->_body.find("\r\n\r\n") != std::string::npos or this->_body.find("\n\n") != std::string::npos)
+			if (this->_body.find(CRLF2) != std::string::npos or this->_body.find("\n\n") != std::string::npos)
 				break;
 		}
 		close(fds[SERVER_READ]);
@@ -386,7 +386,7 @@ std::string Cgi::getHeaders(void) const
 	std::string headers;
 
 	for (std::map<std::string, std::string>::const_iterator it = this->_headers.begin(); it != this->_headers.end();++it)
-		headers += it->first + ": " + it->second + "\r\n";
+		headers += it->first + ": " + it->second + CRLF;
 	return headers;
 }
 

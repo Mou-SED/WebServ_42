@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Response.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 13:43:59 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 09:12:57 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,61 +65,57 @@ void Response::toString( std::string const  &type)
 {
 	this->_headers += "HTTP/1.1 ";
 	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-	this->_headers += "\r\n";
-	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
-	this->_headers += "Date: " + getDate() + "\r\n";
+	this->_headers += CRLF;
+	this->_headers += std::string("Server: WebServ/1.0.0 (Unix)") + CRLF;
+	this->_headers += "Date: " + getDate() + CRLF;
 	if (this->_Location != "")
 	{
-		this->_headers += "Location: " + this->_Location + "\r\n";
-		this->_headers += "Connection: close\r\n\r\n";
+		this->_headers += "Location: " + this->_Location + CRLF;
+		this->_headers += std::string("Connection: close") + CRLF2;
 		return ;
 	}
-	this->_headers += "Content-Type: " + type + "\r\n";
-	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
-	this->_headers += "Connection: close\r\n\r\n";
+	this->_headers += "Content-Type: " + type + CRLF;
+	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + CRLF;
+	this->_headers += std::string("Connection: close") + CRLF2;
 	// TODO : Add headers for cookies and redirection.
 }
 
 void Response::toStringGet( void )
 {
 	this->_headers += "HTTP/1.1 ";
-	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-	this->_headers += "\r\n";
-	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
-	this->_headers += "Date: " + getDate() + "\r\n";
+	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status) + CRLF;
+	this->_headers += std::string("Server: WebServ/1.0.0 (Unix)") + CRLF;
+	this->_headers += "Date: " + getDate() + CRLF;
 	if (this->_status >= MOVED_PERMANENTLY and this->_status <= TEMPORARY_REDIRECT)
 	{
 		if (this->_Location != "")
-			this->_headers += "Location: " + this->_Location + "\r\n";
+			this->_headers += "Location: " + this->_Location + CRLF;
 		else
-			this->_headers += "Location: " + this->getPath() + "\r\n";
+			this->_headers += "Location: " + this->getPath() + CRLF;
 	}
-	this->_headers += "Accept-Ranges: bytes\r\n";
-	this->_headers += "Content-Type: " + this->_request.getContentType() + "\r\n";
-	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
-	this->_headers += "Connection: close\r\n\r\n";
-	// TODO : Add headers for cookies and redirection.
+	this->_headers += std::string("Accept-Ranges: bytes") + CRLF;
+	this->_headers += "Content-Type: " + this->_request.getContentType() + CRLF;
+	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + CRLF;
+	this->_headers += std::string("Connection: close") + CRLF2;
 }
 
 void Response::toStringDelete( void )
 {
 	this->_headers += "HTTP/1.1 ";
-	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-	this->_headers += "\r\n";
-	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
-	this->_headers += "Date: " + getDate() + "\r\n";
-	this->_headers += "Connection: close\r\n\r\n";
+	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status) + CRLF;
+	this->_headers += std::string("Server: WebServ/1.0.0 (Unix)") + CRLF;
+	this->_headers += "Date: " + getDate() + CRLF;
+	this->_headers += std::string("Connection: close") + CRLF2;
 }
 
 void Response::toStringPut( void )
 {
 	this->_headers += "HTTP/1.1 ";
-	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-	this->_headers += "\r\n";
-	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
-	this->_headers += "Date: " + getDate() + "\r\n";
-	this->_headers += "Content-Location: " + this->_request.getUri() + "\r\n";
-	this->_headers += "Connection: close\r\n\r\n";
+	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status) + CRLF;
+	this->_headers += std::string("Server: WebServ/1.0.0 (Unix)") + CRLF;
+	this->_headers += "Date: " + getDate() + CRLF;
+	this->_headers += "Content-Location: " + this->_request.getUri() + CRLF;
+	this->_headers += std::string("Connection: close") + CRLF2;
 }
 
 bool	checking_extension(std::string const &Path, std::string const & cgi)
@@ -130,7 +126,7 @@ bool	checking_extension(std::string const &Path, std::string const & cgi)
 	if (pos != std::string::npos)
 		ext = Path.substr(Path.find_last_of(".", pos) + 1,pos - Path.find_last_of(".", pos) - 1);
 	else
-	 	ext = Path.substr(Path.find(".") + 1);
+		ext = Path.substr(Path.find(".") + 1);
 	return (ext == extension);
 }
 
@@ -332,16 +328,16 @@ void Response::POST( std::pair<std::string, Directives > * location )
 	this->_buffer = strdup(cgi.getBody().c_str());
 	this->_headers += "HTTP/1.1 ";
 	this->_headers += std::to_string(this->_status) + " " + getStatusMessage(this->_status);
-	this->_headers += "\r\n";
-	this->_headers += "Server: WebServ/1.0.0 (Unix)\r\n";
-	this->_headers += "Date: " + getDate() + "\r\n";
-	this->_headers += "Content-Type: " + cgi.getContentType() + "\r\n";//generateContentType(this->_path) + "\r\n";
+	this->_headers += CRLF;
+	this->_headers += std::string("Server: WebServ/1.0.0 (Unix)") + CRLF;
+	this->_headers += "Date: " + getDate() + CRLF;
+	this->_headers += "Content-Type: " + cgi.getContentType() + CRLF;
 	if (cgi.getLocation() != "")
-		this->_headers += "Location: " + cgi.getLocation() + "\r\n";
+		this->_headers += "Location: " + cgi.getLocation() + CRLF;
 	if (cgi.getCookie() != "")
-		this->_headers += "set-cookie: " + cgi.getCookie() + "\r\n";
-	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + "\r\n";
-	this->_headers += "Connection: close\r\n\r\n";
+		this->_headers += "set-cookie: " + cgi.getCookie() + CRLF;
+	this->_headers += "Content-Length: " + std::to_string(this->_bodySize) + CRLF;
+	this->_headers += std::string("Connection: close") + CRLF2;
 }
 
 void Response::generateErrorResponse( void )
