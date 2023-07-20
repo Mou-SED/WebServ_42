@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Core.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/09 14:30:16 by moseddik          #+#    #+#             */
-/*   Updated: 2023/06/25 17:44:23 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:29:07 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,5 +42,6 @@ class Core
 		void	sentGetResponse( int clientFd );
 		void	sentHeadersResponse( int clientFd );
 		void	sentPostResponse( int clientFd );
+		void	sentToClient( int clientFd );
 		Server * getServer( int fd, const std::string & host );
 };
