@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/23 10:38:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 09:12:57 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:11:38 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,16 +118,25 @@ void Response::toStringPut( void )
 	this->_headers += std::string("Connection: close") + CRLF2;
 }
 
-bool	checking_extension(std::string const &Path, std::string const & cgi)
+bool	Response::checking_extension(std::string const &Path, std::vector<std::string> const & cgi)
 {
-	std::string ext;
-	std::string extension = cgi.substr(0, cgi.find(" "));
-	size_t pos = Path.find("?");
-	if (pos != std::string::npos)
-		ext = Path.substr(Path.find_last_of(".", pos) + 1,pos - Path.find_last_of(".", pos) - 1);
-	else
-		ext = Path.substr(Path.find(".") + 1);
-	return (ext == extension);
+	for (size_t i = 0; i < cgi.size(); i++)
+	{
+		std::string ext;
+		std::string extension = cgi[i].substr(0, cgi[i].find(" "));
+		size_t pos = Path.find("?");
+		if (pos != std::string::npos)
+			ext = Path.substr(Path.find_last_of(".", pos) + 1,pos - Path.find_last_of(".", pos) - 1);
+		else
+			ext = Path.substr(Path.find(".") + 1);
+		if (ext == extension)
+		{
+			this->cgi_passIndex = i;
+			return (ext == extension);
+		}
+	}
+	this->cgi_passIndex = -1;
+	return (false);
 }
 
 void Response::generateResponse(void)
@@ -151,7 +160,8 @@ void Response::generateResponse(void)
 		this->generateErrorResponse();
 		return ;
 	}
-	if ( method == "POST" or checking_extension(getUri(), location->second["cgi_pass"][0]) ) POST( location );
+	bool isCgiScript = checking_extension(getUri(), location->second["cgi_pass"]);
+	if ( method == "POST" or isCgiScript ) POST( location );
 	else if ( method == "GET" ) GET( location );
 	else if ( method == "PUT" ) PUT();
 	else if ( method == "DELETE" ) DELETE();
@@ -310,7 +320,7 @@ void Response::POST( std::pair<std::string, Directives > * location )
 		Methode = "POST";
 	else
 		Methode = "GET";
-	Cgi cgi(this->getUri(), Methode, this->_request, location);
+	Cgi cgi(this->getUri(), Methode, this->_request, location, this->cgi_passIndex);
 	if (cgi.getStatus() >= BAD_REQUEST)
 	{
 		this->_status = cgi.getStatus();
@@ -393,9 +403,7 @@ std::pair<std::set<int>, std::string> getErrorPage(std::string &error_page)
 void Response::setErrorPages(std::vector<std::string> &error_pages)
 {
 	for (size_t i = 0; i < error_pages.size(); i++)
-	{
 		this->_error_pages.push_back(getErrorPage(error_pages[i]));
-	}
 }
 
 void Response::setRequest(Request const &req)

@@ -62,34 +62,19 @@ BLUE := \033[0;34m
 SRC_DIR := src
 OBJ_DIR := obj
 INC_DIR := include
-TEST_DIR := tests
 TOOL_DIR := tools
 
 # ************************************ Files ***********************************
 NAME := Webserv
-# TODO: Make sure to change this before pushing to the intra
 SRCS := $(shell find $(SRC_DIR) -type f -name *.cpp -print)
 OBJS := $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRCS))
 
 # ****************************** Compiler Options ******************************
 CXX := c++
-CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -MMD -I $(INC_DIR) #TODO Don't forget to change to c++98
+CXXFLAGS := -Wall -Wextra -Werror -std=c++98 -MMD -I $(INC_DIR)
 
 # ******************************** Make Flags **********************************
 MAKEFLAGS += --silent
-
-# ****************************** Make Arguments ********************************
-ifdef LEAKS
-	CXXFLAGS += -g -D LEAKS
-else ifdef DEBUG
-	CXXFLAGS += -g
-else ifdef RELEASE
-	CXXFLAGS += -Ofast
-	LDFLAGS += -flto
-else # Default: development mode
-	CXXFLAGS += -g -fsanitize=address
-	LDFLAGS += -fsanitize=address -g
-endif
 
 # ******************************* Main Targets *********************************
 all: $(NAME)
@@ -108,37 +93,6 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 $(OBJ_DIR):
 	mkdir $@
 
-# ******************************** Test config *********************************
-
-# Please write all test suite names here
-TEST_NAMES := WebServ 
-
-# Please write all external dependencies here
-# Example: unitName_DEP := dependency1 dependency2 ...
-# Note: Dependencies are written without any extension
-# Note: This can be omitted if the unit has no external dependencies
-webserv_DEP := CheckSyntax Core Error ParcingFile Request Tokenization WebServ main 
-
-
-# ******************************* Test Targets *********************************
-testall:
-	./$(TOOL_DIR)/run-all-tests.sh $(TEST_NAMES)
-
-test: $(UNIT).test
-	./$<
-
-$(UNIT).test: $(patsubst %, $(OBJ_DIR)/%.o, $($(UNIT)_DEP))
-
-$(UNIT).test: $(OBJ_DIR)/$(UNIT).test.o $(OBJ_DIR)/$(UNIT).o
-	echo "Linking $(BLUE)$(@F)$(NC)..."
-	$(CXX) $(LDFLAGS) $^ -o $@
-	./$(TOOL_DIR)/clear-line.sh
-
-$(OBJ_DIR)/%.o: $(TEST_DIR)/%.cpp | $(OBJ_DIR)
-	echo "Compiling $(GREEN)$(<F)$(NC)..."
-	$(CXX) $(CXXFLAGS) -c $< -o $@
-	./$(TOOL_DIR)/clear-line.sh
-
 # ****************************** Global Targets ********************************
 clean:
 	echo "$(RED)Cleaning object files...$(NC)"
@@ -150,7 +104,6 @@ clean:
 
 fclean: clean
 	echo "$(RED)Cleaning $(NAME)...$(NC)"
-	rm -f $(NAME) *.test
 	./$(TOOL_DIR)/clear-line.sh
 
 re: fclean all
@@ -158,4 +111,4 @@ re: fclean all
 # **************************** Header dependencies *****************************
 -include $(patsubst %.o, %.d, $(OBJS))
 
-.PHONY: all clean fclean re test testall
+.PHONY: all clean fclean re

@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/09 15:44:24 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/20 06:55:45 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/20 07:57:35 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -223,6 +223,8 @@ std::string getStatusMessage( uint16_t status )
 			return "Request URI Too Large";
 		case TEMPORARY_REDIRECT:
 			return "Temporary Redirect";
+		case PERMANENT_REDIRECT:
+			return "Permanent Redirect";
 		default:
 			throw std::runtime_error("Unknown status code" + std::to_string(status));
 	}

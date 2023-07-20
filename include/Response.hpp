@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/21 16:20:23 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 10:30:35 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 10:52:01 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ class Response
 		std::string _uri;
 
 	public:
+		int	cgi_passIndex;
 		char *_buffer;
 		std::string _Location;
 		bool _isCGI;
@@ -59,6 +60,8 @@ class Response
 		uint16_t	getStatus( void ) const;
 		std::string getUri( void ) const;
 		void 		clear( void );
+
+		bool		checking_extension(std::string const &Path, std::vector<std::string> const & cgi);
 
 		void		setErrorPages(std::vector<std::string> &error_pages);
 		void 		setRequest( Request const & req );

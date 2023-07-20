@@ -6,7 +6,7 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 09:18:45 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:02:57 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,9 @@ std::string getMatching(std::string const & s1, std::string const & s2)
 	return s1+s2;
 }
 
-Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location )
+Cgi::Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location, int cgi_passIndex )
 {
-	std::vector<std::string> tmp = split(location->second["cgi_pass"][0], ' ', false);
+	std::vector<std::string> tmp = split(location->second["cgi_pass"][cgi_passIndex], ' ', false);
 
 	try{
 		setApp(tmp[1]);
@@ -98,8 +98,7 @@ int Cgi::execute(void)
 {
 	this->createPipe();
 
-	fcntl(fds[CGI_WRITE], F_SETFL, O_NONBLOCK);
-
+	// fcntl(fds[CGI_WRITE], F_SETFL, O_NONBLOCK);
 	this->pid = fork();
 	if (this->pid == -1)
 		return -1;
@@ -113,13 +112,13 @@ int Cgi::execute(void)
 void Cgi::childProcess(void)
 {
 	dup2(fds[CGI_WRITE], 1);
-	close(fds[SERVER_READ]);
 	close(fds[CGI_WRITE]);
+	close(fds[SERVER_READ]);
 	if (this->_method == "POST")
 	{
 		dup2(fds[CGI_READ], 0);
-		close(fds[SERVER_WRITE]);
 		close(fds[CGI_READ]);
+		close(fds[SERVER_WRITE]);
 	}
 	setEnv();
 	char **env = new char*[this->_env.size() + 1];
@@ -136,7 +135,6 @@ void Cgi::childProcess(void)
 	for (size_t i = 0; i < this->_env.size(); i++)
 		delete[] env[i];
 	delete[] env;
-	std::cerr << "execve failed: " << args[0] << " " << args[1] << std::endl;
 	delete[] args[0];
 	delete[] args[1];
 	delete[] args;
@@ -161,16 +159,19 @@ void	Cgi::sendingBody( void )
 
 	close(fds[CGI_READ]);
 	fcntl(fds[SERVER_WRITE], F_SETFL, O_NONBLOCK);
+	fcntl(this->_fileBody.WR_fd, F_SETFL, O_NONBLOCK);
 	while (size < this->_sizeBody)
 	{
-		if (time(NULL) - t > 50)
+		if (time(NULL) - t > 10)
 			throw std::runtime_error("Error : CGI timeout");
 		ret = read(this->_fileBody.WR_fd, buffer, MYBUFSIZ);
 		bytes = write(fds[SERVER_WRITE], buffer, ret);
-		if (bytes > 0)
+		if (bytes != -1)
 			size += bytes;
+		else if (errno != EAGAIN)
+			throw std::runtime_error("Error : read failed");
 	}
-	if (this->_fileBody.WR_fd > 3)
+	if (this->_fileBody.file.is_open())
 		close(this->_fileBody.WR_fd);
 	close(fds[SERVER_WRITE]);
 }
@@ -209,64 +210,59 @@ void	Cgi::addToHeaders(std::string &str, bool &body)
 
 void	Cgi::waitingChild( void )
 {
-	int		ret;
-	int		now = time(NULL);
 	int		_time = time(NULL);
 
-	while (now - _time < 5)
+	while (time(NULL) - _time < 5)
 	{
-		ret = waitpid(this->pid, &this->exStatus, WNOHANG | WUNTRACED);
-		if (ret == -1)
-		{
-			  if (errno != EAGAIN && errno != EWOULDBLOCK)
-			  	return ;
-		}
-		else {
+		if( waitpid(this->pid, &this->exStatus, WNOHANG) == this->pid)
 		{
 			if ((WIFEXITED(this->exStatus) == true and WEXITSTATUS(this->exStatus) != EXIT_SUCCESS) or this->exStatus == 1)
+			{
 				this->_status = BAD_GATEWAY;
+				kill(this->pid, SIGKILL);
+			}
 			return ;
 		}
-		}
-		now = time(NULL);
 	}
-	this->_status = GATEWAY_TIME_OUT;
+	throw std::runtime_error("Error : CGI timeout");
 }
 
 void	Cgi::parentProcess( void )
 {
-	close(fds[CGI_WRITE]);
 	std::string	str;
 	time_t		t = time(NULL);
 	char		buffer[MYBUFSIZ] = {0};
 	bool		body = false;
-	int			ret;
+	int			ret = 1;
 
 	try
 	{
+		close(fds[CGI_WRITE]);
 		if (this->_method == "POST")
 			sendingBody();
-		while ( 1337 )
+		if (fcntl(fds[SERVER_READ], F_SETFL, O_NONBLOCK) == -1)
+			throw std::runtime_error("Error : fcntl failed");
+		while ( (ret = read(fds[SERVER_READ], buffer, MYBUFSIZ)) != 0 )
 		{
 			if (this->_body.find(CRLF2) != std::string::npos)
 					break;
-			if (time(NULL) - t > 10)
+			if (time(NULL) - t > 20)
 			{
 				this->_status = GATEWAY_TIME_OUT;
 				break;
 			}
-			if (errno == EAGAIN || errno == EWOULDBLOCK)
-				break;
-			ret = ::read(fds[SERVER_READ], buffer, MYBUFSIZ);
-			if (ret == 0 or ret == -1)
-				break;
-			str.append(buffer, ret);
-			if (str.find(CRLF2) != std::string::npos and body == false)
-				addToHeaders(str, body);
-			else
-				this->_body.append(buffer, ret);
-			if (this->_body.find(CRLF2) != std::string::npos or this->_body.find("\n\n") != std::string::npos)
-				break;
+			if (ret != -1)
+			{
+				str.append(buffer, ret);
+				if (str.find("\r\n\r\n") != std::string::npos and body == false)
+					addToHeaders(str, body);
+				else
+					this->_body.append(buffer, ret);
+				if (this->_body.find("\r\n\r\n") != std::string::npos or this->_body.find("\n\n") != std::string::npos)
+					break;
+			}
+			else if (errno != EAGAIN)
+				throw std::runtime_error("Error : read failed");
 		}
 		close(fds[SERVER_READ]);
 		waitingChild();

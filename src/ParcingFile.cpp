@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 11:11:08 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:05:55 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ int  Check::num_line;
 std::set<std::string> Check::methods;
 std::string Check::key;
 std::string Check::value;
-std::string arr[] = {"default_type", "server", "listen", "server_name", "error_page", "client_max_body_size", "location", "root", "index", "client_body_temp_path", "autoindex", "return", "cgi_pass", "allowed_methods"};
+std::string arr[] = {"default_type", "server", "listen", "server_name", "error_page", "client_max_body_size", "location", "root", "index", "autoindex", "return", "cgi_pass", "allowed_methods"};
 std::vector<std::string> type_value(arr, arr + sizeof(arr) / sizeof(arr[0]));
 std::stack<char> Check::brackets;
 
@@ -115,11 +115,6 @@ void	check_value(std::string const &key, std::string const & value)
 		index_check(value);
 	else if (key == "cgi_pass")
 		cgi_pass_check(value);
-	else if (key == "client_body_temp_path")
-	{
-		if (value == "" or value == ";")
-			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `client_body_temp_path` value");
-	}
 	else if (key == "autoindex")
 		autoindex_check(value);
 	else if (key == "return")
@@ -208,20 +203,9 @@ bool parcing(std::ifstream &file, std::string s)
 	if (not file.is_open())
 		return (false);
 	(void)s;
-	type_value[0] = "default_type";
-	type_value[1] = "server";
-	type_value[2] = "listen";
-	type_value[3] = "server_name";
-	type_value[4] = "error_page";
-	type_value[5] = "client_max_body_size";
-	type_value[6] = "location";
-	type_value[7] = "root";
-	type_value[8] = "index";
-	type_value[9] = "client_body_temp_path";
-	type_value[10] = "autoindex";
-	type_value[11] = "return";
-	type_value[12] = "cgi_pass";
-	type_value[13] = "allowed_methods";
+	type_value[0] = "default_type";type_value[1] = "server";type_value[2] = "listen";type_value[3] = "server_name";
+	type_value[4] = "error_page";type_value[5] = "client_max_body_size";type_value[6] = "location";type_value[7] = "root";type_value[8] = "index";
+	type_value[9] = "autoindex";type_value[10] = "return";type_value[11] = "cgi_pass";type_value[12] = "allowed_methods";
 	check_syntax(file);
 	return (true);
 }

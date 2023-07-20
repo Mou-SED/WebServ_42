@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:08:37 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 10:28:05 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/20 10:50:56 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,9 +56,9 @@ class Cgi {
 		Cgi(void);
 		~Cgi(void);
 		Cgi(Cgi const & src);
-		Cgi(std::string const & path, std::string const & method, Request & req, std::pair<std::string, Directives > * location );
+		Cgi(std::string const &path, std::string const &method, Request &req, std::pair<std::string, Directives > * location, int cgi_passIndex );
 		Cgi & operator=(Cgi const & rhs);
-		
+
 		eState 		state;
 		off_t 		bodySize;
 		int 		execute(void);

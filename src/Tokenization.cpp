@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Tokenization.cpp                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
+/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/01 18:32:41 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/19 16:27:57 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/20 11:11:46 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ Server get_directive(std::string const &key, std::string const &value)
 	Server server;
 	if (server.directives.find(key) != server.directives.end() and (key == "root" or key == "client_max_body_size" or key == "autoindex"))
 		throw std::runtime_error("Syntax error : directive already exist");
-	server.directives[key].push_back(value); // TODO check all the directives don't have the same key like "root, ..., etc"
+	server.directives[key].push_back(value);
 	return (server);
 }
 
@@ -93,7 +93,6 @@ Server parc_server(std::ifstream &file, std::string &line)
 
 		if (value.empty() and key.empty())
 			continue;
-		std::cerr << "key: " << key << " value: " << value << std::endl;
 		value = trim(line.substr(line.find(value)));
 		value = value.substr(0, value.find_first_of(";"));
 		token = get_tokens(key);
@@ -144,10 +143,8 @@ void setDefaultDirectives(std::vector<Server> &servers)
 			servers[i].directives["listen"].push_back("0.0.0.0:8080");
 		if (servers[i].directives.find("server_name") == servers[i].directives.end())
 			servers[i].directives["server_name"].push_back(servers[i].directives["listen"][0].substr(0, servers[i].directives["listen"][0].find_first_of(":")));
-		if (servers[i].directives.find("error_page") == servers[i].directives.end())
-			servers[i].directives["error_page"].push_back("404 /404.html");
 		if (servers[i].directives.find("client_max_body_size") == servers[i].directives.end())
-			servers[i].directives["client_max_body_size"].push_back("2m");
+			servers[i].directives["client_max_body_size"].push_back("2M");
 	}
 
 	for (size_t i = 0; i < servers.size(); i++)

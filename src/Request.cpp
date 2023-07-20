@@ -6,17 +6,20 @@
 /*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/13 17:07:46 by moseddik          #+#    #+#             */
-/*   Updated: 2023/07/20 09:19:04 by moseddik         ###   ########.fr       */
+/*   Updated: 2023/07/20 06:26:08 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 #include "../include/Request.hpp"
 
-void	checkHeaders(std::map<std::string, std::string> &headers)
+void	Request::checkHeaders(std::map<std::string, std::string> &headers)
 {
 	if (headers["host"].empty())
-		std::cerr << "Error : Host header is missing" << std::endl;//TODO 
+	{
+		this->status = BAD_REQUEST;
+		this->state = ERR;
+	}
 }
 
 void File::createName( void )
@@ -413,6 +416,8 @@ bool Request::mainParsingRequest(std::stringstream &ss)
 		{
 			x++;
 			checkHeaders(this->_headers);
+			if (this->status == BAD_REQUEST)
+				return false;
 		}
 		return parsingBody(ss);
 	}
