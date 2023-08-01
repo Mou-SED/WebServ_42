@@ -6,12 +6,21 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/05 22:23:43 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 11:05:55 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/25 05:52:46 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../include/WebServ.hpp"
 #include "../include/Tokenization.hpp"
+#include <string>
+
+std::string to_string(int num)
+{
+	std::stringstream ss;
+	ss << num;
+	return ss.str();
+}
+
 
 int  Check::num_line;
 std::set<std::string> Check::methods;
@@ -80,7 +89,7 @@ bool Check::isDomain( std::string const & s )
 {
 	if (s.size() > 255)
 		throw std::runtime_error("Error: syntax error : `" + s + "` : too long");
-	if (s.front() == '.' or s.back() == '.' or s.front() == '-' or s.back() == '-')
+	if (s[0]== '.' or s[s.size() - 1] == '.' or s[0]== '-' or s[s.size() - 1] == '-')
 		return false;
 	if ( strspn(s.c_str(), "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-.") == s.size() and s != "" )
 		return true;
@@ -90,13 +99,13 @@ bool Check::isDomain( std::string const & s )
 void	cgi_pass_check(std::string const & value)
 {
 	if (value == "" or value == ";")
-		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `cgi_pass` value");
+		throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error : missing `cgi_pass` value");
 }
 
 void	check_value(std::string const &key, std::string const & value)
 {
 	if ( (key == "server" and value != "{") )
-		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : server block must be followed by `{`");
+		throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error : server block must be followed by `{`");
 	else if (key == "location")
 		location_check(value);
 	else if (key == "listen")
@@ -120,7 +129,7 @@ void	check_value(std::string const &key, std::string const & value)
 	else if (key == "return")
 		redirectionCheck(value);
 	else if (key != "server" and key != "location")
-		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
+		throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
 }
 
 void allowed_methods_check(std::string const & value)
@@ -132,7 +141,7 @@ void allowed_methods_check(std::string const & value)
 		if (methods[i] == "GET" or methods[i] == "POST" or methods[i] == "DELETE" or methods[i] == "PUT")
 			continue ;
 		else
-			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown method `" + methods[i] + "`");
+			throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error : unknown method `" + methods[i] + "`");
 	}
 }
 
@@ -164,26 +173,26 @@ void	check_syntax(std::ifstream &file)
 		else if (key == "}" and !Check::brackets.empty())
 			Check::brackets.pop();
 		else if (key == "}" and Check::brackets.empty())
-			throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing `{`");
+			throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error : missing `{`");
 		else
 		{
 			if (key == "server" and value == "{")
 				Check::brackets.push('{');
 			if ( (line.find(";") == std::string::npos or line.find(";") != line.size() - 1)
 					and (key != "server" and key != "location" and key != "}") )
-				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error");
+				throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error");
 			value = trim(line.substr(line.find(value) - 1));
 			if (key != "}" and std::count(value.begin(), value.end(), ';') > 1)
-				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error");
+				throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error");
 			if (Check::methods.find(key) == Check::methods.end())
-				throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
+				throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error : unknown `" + key + "`");
 			else
 				check_value(key, value);
 		}
 	}
 	file.close();
 	if (Check::brackets.size() != 0)
-		throw std::runtime_error("Line : " + std::to_string(Check::num_line) + " : syntax error : missing close bracket `}`");
+		throw std::runtime_error("Line : " + to_string(Check::num_line) + " : syntax error : missing close bracket `}`");
 }
 
 void	print_directivers(std::vector<std::string> directives)
