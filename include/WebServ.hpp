@@ -6,7 +6,7 @@
 /*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/07 16:20:28 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 11:30:10 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/25 05:50:06 by aaggoujj         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,8 @@
 #include "dirent.h"
 #include "Utils.hpp"
 #include <sys/time.h>
+#include <stdlib.h>
+#include <cstdlib>
 
 #define MAX_EVENTS 1024
 #define MYBUFSIZ 1048576

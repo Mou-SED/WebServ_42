@@ -246,7 +246,23 @@ void Core::readRequest( int clientFd )
 	return ;
 }
 
-void Core::sentGetResponse(int clientFd)
+void Core::sentToClient( int clientFd )
+{
+	ssize_t sentBytes = send(
+		clientFd,
+		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
+		this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent,
+		0
+	);
+
+	this->_responses[clientFd].bytesSent += sentBytes;
+	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
+		this->_requests[clientFd].state = SENT;
+
+	return ;
+}
+
+void Core::sentGetResponse( int clientFd )
 {
 	if ( this->_responses.count(clientFd) == 0 )
 	{
@@ -270,16 +286,7 @@ void Core::sentGetResponse(int clientFd)
 			response.ifs.close();
 		}
 	}
-	ssize_t sentBytes = send(
-		clientFd,
-		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
-		this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent,
-		0
-	);
-
-	this->_responses[clientFd].bytesSent += sentBytes;
-	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
-		this->_requests[clientFd].state = SENT;
+	sentToClient( clientFd );
 
 	return ;
 }
@@ -299,16 +306,9 @@ void Core::sentHeadersResponse( int clientFd )
 		this->_responses[clientFd].ifs.read (this->_responses[clientFd]._buffer,response.getBodySize());
 		response.ifs.close();
 	}
-	ssize_t sentBytes = send(
-		clientFd,
-		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
-		this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent,
-		0
-	);
+	sentToClient( clientFd );
 
-	this->_responses[clientFd].bytesSent += sentBytes;
-	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
-		this->_requests[clientFd].state = SENT;
+	return ;
 }
 
 void Core::sentPostResponse( int clientFd )
@@ -318,16 +318,10 @@ void Core::sentPostResponse( int clientFd )
 	response.setRequest( request );
 	response.generateResponse();
 	send( clientFd, response.getHeaders().c_str(), response.getHeaders().length(), 0);
-	ssize_t sentBytes = send(
-		clientFd,
-		this->_responses[clientFd]._buffer + this->_responses[clientFd].bytesSent,
-		this->_responses[clientFd].getBodySize() - (off_t)this->_responses[clientFd].bytesSent,
-		0
-	);
 
-	this->_responses[clientFd].bytesSent += sentBytes;
-	if ( (off_t)this->_responses[clientFd].bytesSent == this->_responses[clientFd].getBodySize())
-		this->_requests[clientFd].state = SENT;
+	sentToClient( clientFd );
+
+	return ;
 }
 
 void Core::sentResponse( int clientFd )

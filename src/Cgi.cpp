@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Cgi.cpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: aaggoujj <aaggoujj@student.42.fr>          +#+  +:+       +#+        */
+/*   By: moseddik <moseddik@student.1337.ma>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/06/17 15:12:49 by aaggoujj          #+#    #+#             */
-/*   Updated: 2023/07/20 11:30:13 by aaggoujj         ###   ########.fr       */
+/*   Updated: 2023/07/21 06:29:23 by moseddik         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -253,11 +253,11 @@ void	Cgi::parentProcess( void )
 			if (ret != -1)
 			{
 				str.append(buffer, ret);
-				if (str.find("\r\n\r\n") != std::string::npos and body == false)
+				if (str.find(CRLF2) != std::string::npos and body == false)
 					addToHeaders(str, body);
 				else
 					this->_body.append(buffer, ret);
-				if (this->_body.find("\r\n\r\n") != std::string::npos or this->_body.find("\n\n") != std::string::npos)
+				if (this->_body.find(CRLF2) != std::string::npos or this->_body.find("\n\n") != std::string::npos)
 					break;
 			}
 			else if (errno != EAGAIN)
